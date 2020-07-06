@@ -39,7 +39,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Net.Http" Version="2.2.29" />
     <PackageReference Include="Moq" Version="4.2.1510.2205" />
   </ItemGroup>
 </Project>

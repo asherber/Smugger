@@ -6,6 +6,7 @@ using Flurl.Http;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -23,9 +24,12 @@ namespace SmugMug.NET
         private DesktopConsumer _smugmugConsumer;
         private ServiceProviderDescription _smugmugServiceDescription = new ServiceProviderDescription
         {
-            RequestTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getRequestToken", HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
-            UserAuthorizationEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/authorize", HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
-            AccessTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getAccessToken", HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
+            RequestTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getRequestToken", 
+                HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
+            UserAuthorizationEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/authorize", 
+                HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
+            AccessTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getAccessToken", 
+                HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
             TamperProtectionElements = new ITamperProtectionChannelBindingElement[] { new HmacSha1SigningBindingElement() },
             ProtocolVersion = ProtocolVersion.V10a
         };
@@ -99,30 +103,27 @@ namespace SmugMug.NET
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            var httpResponse = await request.GetAsync().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
-            httpResponse.EnsureSuccessStatusCode();
-            GetResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseStub<T>>().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
+            Trace.WriteLine(string.Format("GET {0}", request.Url));
+            var result = await request.GetAsync().ReceiveJson<GetResponseStub<T>>().ConfigureAwait(false);
+            Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));
 
-            return contentResponse.Response;            
+            return result.Response;            
         }
 
         private async Task<Tuple<T, Dictionary<string,TE>>> GetRequestWithExpansionsAsync<T, TE>(string endpoint)
         {
             return await GetRequestWithExpansionsAsync<T, TE>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
+
         private async Task<Tuple<T, Dictionary<string, TE>>> GetRequestWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            var httpResponse = await request.GetAsync().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
-            httpResponse.EnsureSuccessStatusCode();
-            GetResponseWithExpansionStub<T,TE> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseWithExpansionStub<T,TE>>().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
-
-            return new Tuple<T, Dictionary<string, TE>>(contentResponse.Response, contentResponse.Expansions);            
+            Trace.WriteLine(string.Format("GET {0}", request.Url));
+            var result = await request.GetAsync().ReceiveJson< GetResponseWithExpansionStub<T, TE>>().ConfigureAwait(false);
+            Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));
+            
+            return new Tuple<T, Dictionary<string, TE>>(result.Response, result.Expansions);            
         }
 
         private async Task<T> PostRequestAsync<T>(string endpoint, string jsonContent)
@@ -134,43 +135,37 @@ namespace SmugMug.NET
         {
             var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.PostRequest);
 
-            var httpResponse = await request.PostAsync(new StringContent(jsonContent)).ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("POST {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
-                
-            PostResponseStub<T> contentResponse = null;
-            if (httpResponse.IsSuccessStatusCode)
+            try
             {
-                contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
+                Trace.WriteLine(string.Format("POST {0}: {1}", request.Url, jsonContent));
+                var result = await request.PostAsync(new StringContent(jsonContent))
+                    .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
+                Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Code, result.Message, result.Response));
+                return result.Response;
             }
-            else
+            catch (FlurlHttpException ex)
             {
-                var failedResponse = httpResponse.Content.ReadAsStringAsync();
-                JObject response = JObject.Parse(failedResponse.Result);
+                var failedResponse = await ex.GetResponseStringAsync().ConfigureAwait(false);
+                JObject response = JObject.Parse(failedResponse);
                 var invalidParameters =
-                    from p in response["Options"]["Parameters"]["POST"]
+                    (from p in response["Options"]["Parameters"]["POST"]
                     where p["Problems"] != null
                     select new POSTParameter
                     {
                         ParameterName = (string)p["Name"],
                         Problem = (string)p["Problems"].First()
-                    };
+                    })
+                    .ToList();
 
-                if (invalidParameters.Count() > 0)
+                if (invalidParameters.Any())
                 {
-                    List<ArgumentException> argumentExceptions = new List<ArgumentException>();
-                    foreach (POSTParameter invalidParameter in invalidParameters)
-                    {
-                        argumentExceptions.Add(new ArgumentException(invalidParameter.Problem, invalidParameter.ParameterName));
-                    }
-                    throw new AggregateException("HTTP POST Request failed.  See inner exceptions for individual reasons.", argumentExceptions.ToArray());
+                    var argumentExceptions = invalidParameters.Select(p => new ArgumentException(p.Problem, p.ParameterName));
+                    throw new AggregateException("HTTP POST Request failed. See inner exceptions for individual reasons.", 
+                        argumentExceptions);
                 }
                 else
                     throw new HttpRequestException("HTTP POST Request failed for unknown reasons");
-            }
-
-            System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
-
-            return contentResponse.Response;            
+            }                  
         }
 
         private async Task<ImageUpload> UploadImageAsync(string albumUri, string fileName, byte[] image, CancellationToken cancellationToken)
@@ -188,15 +183,13 @@ namespace SmugMug.NET
                 });
 
             
+            Trace.WriteLine(string.Format("POST {0}", request.Url));
             var content = new StreamContent(new MemoryStream(image));
-            var httpResponse = await request.PostAsync(content, cancellationToken).ConfigureAwait(false);
+            var result = await request.PostAsync(content, cancellationToken)
+                .ReceiveJson<ImagePostResponse>().ConfigureAwait(false);
+            Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Stat, result.Method, result.Image));
 
-            System.Diagnostics.Trace.WriteLine(string.Format("POST {0}", httpResponse.RequestMessage.RequestUri));
-            httpResponse.EnsureSuccessStatusCode();
-            ImagePostResponse contentResponse = await httpResponse.Content.ReadAsAsync<ImagePostResponse>().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Stat, contentResponse.Method, contentResponse.Image));
-
-            return contentResponse.Image;           
+            return result.Image;           
         }
 
         private async Task<T> PatchRequestAsync<T>(string endpoint, string jsonContent)
@@ -208,13 +201,12 @@ namespace SmugMug.NET
         {
             var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.PatchRequest);
 
-            var httpResponse = await request.PatchAsync(new StringContent(jsonContent)).ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("PATCH {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
-            httpResponse.EnsureSuccessStatusCode();
-            PostResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
+            Trace.WriteLine(string.Format("PATCH {0}: {1}", request.Url, jsonContent));
+            var result = await request.PatchAsync(new StringContent(jsonContent))
+                .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
+            Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Code, result.Message, result.Response));
 
-            return contentResponse.Response;            
+            return result.Response;            
         }
 
         private async Task DeleteRequestAsync(string endpoint)
@@ -226,11 +218,9 @@ namespace SmugMug.NET
         {
             var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.DeleteRequest);
 
-            var httpResponse = await request.DeleteAsync().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("DELETE {0}", httpResponse.RequestMessage.RequestUri));
-            httpResponse.EnsureSuccessStatusCode();
-            DeleteResponseStub contentResponse = await httpResponse.Content.ReadAsAsync<DeleteResponseStub>().ConfigureAwait(false);
-            System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", httpResponse.StatusCode, httpResponse.ReasonPhrase));            
+            Trace.WriteLine(string.Format("DELETE {0}", request.Url));
+            var result = await request.DeleteAsync().ReceiveJson<DeleteResponseStub>().ConfigureAwait(false);
+            Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));            
         }
         #endregion
 
