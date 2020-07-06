@@ -1,19 +1,17 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net.Http;
+using Xunit;
 
 namespace SmugMug.NET.Tests
 {
-    [TestClass]
     public class ImageUnitTests
     {
         private ISmugMugClient api;
 
-        [TestInitialize()]
-        public void InitializeAnonymous()
+        public ImageUnitTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
@@ -65,164 +63,158 @@ namespace SmugMug.NET.Tests
             api = mock.Object;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetImage()
         {
             Image image= await api.GetImageAsync("ValidImage");
-            Assert.IsNotNull(image);
-            Assert.AreEqual("ValidFileName.jpg", image.FileName);
-            Assert.AreEqual("JPG", image.Format);
-            Assert.AreEqual("Valid Image", image.Title);
+            Assert.NotNull(image);
+            Assert.Equal("ValidFileName.jpg", image.FileName);
+            Assert.Equal("JPG", image.Format);
+            Assert.Equal("Valid Image", image.Title);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetImage_Invalid()
         {
             Image image = await api.GetImageAsync("InvalidImage");
-            Assert.IsNull(image);
+            Assert.Null(image);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UploadImage()
         {
             ImageUpload imageUpload = await api.UploadImageAsync("ValidAlbum", "ValidImage");
-            Assert.IsNotNull(imageUpload);
+            Assert.NotNull(imageUpload);
 
             Image image = await api.GetImageAsync(imageUpload);
-            Assert.IsNotNull(image);
-            Assert.AreEqual("ValidFileName.jpg", image.FileName);
-            Assert.AreEqual("JPG", image.Format);
-            Assert.AreEqual("Valid Image", image.Title);
+            Assert.NotNull(image);
+            Assert.Equal("ValidFileName.jpg", image.FileName);
+            Assert.Equal("JPG", image.Format);
+            Assert.Equal("Valid Image", image.Title);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UploadImage_InvalidImage()
         {
             ImageUpload imageUpload = await api.UploadImageAsync("ValidAlbum", "InvalidImage");
-            Assert.IsNull(imageUpload);
+            Assert.Null(imageUpload);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UploadImage_ByNode()
         {
             Node node = await api.GetNodeAsync("ValidNode");
-            Assert.IsNotNull(node);
+            Assert.NotNull(node);
 
             ImageUpload imageUpload = await api.UploadImageAsync(node, "ValidImage");
-            Assert.IsNotNull(imageUpload);
+            Assert.NotNull(imageUpload);
 
             Image image = await api.GetImageAsync(imageUpload);
-            Assert.IsNotNull(image);
-            Assert.AreEqual("ValidFileName.jpg", image.FileName);
-            Assert.AreEqual("JPG", image.Format);
-            Assert.AreEqual("Valid Image", image.Title);
+            Assert.NotNull(image);
+            Assert.Equal("ValidFileName.jpg", image.FileName);
+            Assert.Equal("JPG", image.Format);
+            Assert.Equal("Valid Image", image.Title);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UploadImage_ByNode_InvalidImage()
         {
             Node node = await api.GetNodeAsync("ValidNode");
-            Assert.IsNotNull(node);
+            Assert.NotNull(node);
 
             ImageUpload imageUpload = await api.UploadImageAsync(node, "InvalidImage");
-            Assert.IsNull(imageUpload);
+            Assert.Null(imageUpload);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UploadImage_ByAlbum()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
-            Assert.IsNotNull(album);
+            Assert.NotNull(album);
 
             ImageUpload imageUpload = await api.UploadImageAsync(album, "ValidImage");
-            Assert.IsNotNull(imageUpload);
+            Assert.NotNull(imageUpload);
 
             Image image = await api.GetImageAsync(imageUpload);
-            Assert.IsNotNull(image);
-            Assert.AreEqual("ValidFileName.jpg", image.FileName);
-            Assert.AreEqual("JPG", image.Format);
-            Assert.AreEqual("Valid Image", image.Title);
+            Assert.NotNull(image);
+            Assert.Equal("ValidFileName.jpg", image.FileName);
+            Assert.Equal("JPG", image.Format);
+            Assert.Equal("Valid Image", image.Title);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UploadImage_ByAlbum_InvalidImage()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
-            Assert.IsNotNull(album);
+            Assert.NotNull(album);
 
             ImageUpload imageUpload = await api.UploadImageAsync(album, "InvalidImage");
-            Assert.IsNull(imageUpload);
+            Assert.Null(imageUpload);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UploadImage_ByAlbum_InvalidAlbum()
         {
             Album album = await api.GetAlbumAsync("InvalidAlbum");
-            Assert.IsNull(album);
+            Assert.Null(album);
 
-            ImageUpload imageUpload = await api.UploadImageAsync(album, "ValidImage");
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UploadImageAsync(album, "ValidImage"));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateImage()
         {
             Image image = await api.GetImageAsync("ValidImage");
-            Assert.IsNotNull(image);
+            Assert.NotNull(image);
 
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Caption", "Updated caption" } };
 
             Image updatedImage = await api.UpdateImageAsync(image, updates);
-            Assert.IsNotNull(updatedImage);
-            Assert.AreEqual(updates["Caption"], updatedImage.Caption);
+            Assert.NotNull(updatedImage);
+            Assert.Equal(updates["Caption"], updatedImage.Caption);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateImage_InvalidAlbum()
         {
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            Image updatedImage = await api.UpdateImageAsync((Image)null, updates);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateImageAsync((Image)null, updates));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateImage_InvalidAlbumNullArguments()
         {
             Image image = await api.GetImageAsync("InvalidImage");
-            Image updatedImage = await api.UpdateImageAsync(image, null);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateImageAsync(image, null));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task UpdateImage_InvalidArguments()
         {
             Image image = await api.GetImageAsync("ValidImage");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            Image updatedImage = await api.UpdateImageAsync(image, updates);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateImageAsync(image, updates));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DeleteImage()
         {
             Image image = await api.GetImageAsync("ValidImage");
             await api.DeleteImageAsync(image);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task DeleteImage_Invalid()
         {
             Image image = await api.GetImageAsync("InvalidImage");
-            await api.DeleteImageAsync(image);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.DeleteImageAsync(image));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task DeleteImage_Unowned()
         {
             Image image = await api.GetImageAsync("UnownedImage");
-            await api.DeleteImageAsync(image);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.DeleteImageAsync(image));
         }
     }
 }

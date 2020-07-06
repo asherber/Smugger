@@ -1,18 +1,16 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Xunit;
 
 namespace SmugMug.NET.Tests
 {
-    [TestClass]
     public class AlbumImageUnitTests
     {
         private ISmugMugClient api;
 
-        [TestInitialize()]
-        public void InitializeAnonymous()
+        public AlbumImageUnitTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
@@ -40,70 +38,70 @@ namespace SmugMug.NET.Tests
             api = mock.Object;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImage()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
-            Assert.IsNotNull(album);
+            Assert.NotNull(album);
 
             AlbumImage image = await api.GetAlbumImageAsync(album, "ValidImage");
 
-            Assert.IsNotNull(image);
-            Assert.AreEqual("ValidFileName.jpg", image.FileName);
-            Assert.AreEqual("JPG", image.Format);
-            Assert.AreEqual("Valid Image", image.Title);
+            Assert.NotNull(image);
+            Assert.Equal("ValidFileName.jpg", image.FileName);
+            Assert.Equal("JPG", image.Format);
+            Assert.Equal("Valid Image", image.Title);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImage_Invalid()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
-            Assert.IsNotNull(album);
+            Assert.NotNull(album);
 
             AlbumImage image = await api.GetAlbumImageAsync(album, "InvalidImage");
-            Assert.IsNull(image);
+            Assert.Null(image);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImage_InvalidAlbum()
         {
             Album album = await api.GetAlbumAsync("InvalidAlbum");
             AlbumImage image = await api.GetAlbumImageAsync(album, "InvalidImage");
-            Assert.IsNull(image);
+            Assert.Null(image);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImages()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
             List<AlbumImage> albumImages = await api.GetAlbumImagesAsync(album);
-            Assert.IsNotNull(albumImages);
-            Assert.IsTrue(albumImages.Count > 0);
+            Assert.NotNull(albumImages);
+            Assert.True(albumImages.Count > 0);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImages_InvalidAlbum()
         {
             Album album = await api.GetAlbumAsync("InvalidAlbum");
             List<AlbumImage> albumImages = await api.GetAlbumImagesAsync(album);
-            Assert.IsNull(albumImages);
+            Assert.Null(albumImages);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImages_withLimit()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
             List<AlbumImage> albumImages = await api.GetAlbumImagesAsync(album,3);
-            Assert.IsNotNull(albumImages);
-            Assert.AreEqual(3, albumImages.Count);
+            Assert.NotNull(albumImages);
+            Assert.Equal(3, albumImages.Count);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetAlbumImages_withInvalidLimit()
         {
             Album album = await api.GetAlbumAsync("ValidAlbum");
             List<AlbumImage> albumImages = await api.GetAlbumImagesAsync(album,-1);
-            Assert.IsNull(albumImages);
+            Assert.Null(albumImages);
         }
     }
 }

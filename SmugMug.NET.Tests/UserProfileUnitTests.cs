@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Xunit;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 
 namespace SmugMug.NET.Tests
 {
-    [TestClass]
     public class UserProfileUnitTests
     {
         private ISmugMugClient api;
 
-        [TestInitialize()]
-        public void InitializeAnonymous()
+        public UserProfileUnitTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
@@ -45,105 +43,100 @@ namespace SmugMug.NET.Tests
             api = mock.Object;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserProfile_ByName()
         {
             UserProfile userProfile = await api.GetUserProfileAsync("ValidUser");
-            Assert.IsNotNull(userProfile);
-            Assert.AreEqual("Valid bio", userProfile.BioText);
-            Assert.AreEqual("Valid User", userProfile.DisplayName);
+            Assert.NotNull(userProfile);
+            Assert.Equal("Valid bio", userProfile.BioText);
+            Assert.Equal("Valid User", userProfile.DisplayName);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserProfile_ByName_Invalid()
         {
             UserProfile userProfile = await api.GetUserProfileAsync("InvalidUser");
-            Assert.IsNull(userProfile);
+            Assert.Null(userProfile);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserProfile_ByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             UserProfile userProfile = await api.GetUserProfileAsync(user);
-            Assert.IsNotNull(userProfile);
-            Assert.AreEqual("Valid bio", userProfile.BioText);
-            Assert.AreEqual("Valid User", userProfile.DisplayName);
+            Assert.NotNull(userProfile);
+            Assert.Equal("Valid bio", userProfile.BioText);
+            Assert.Equal("Valid User", userProfile.DisplayName);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserProfile_ByUser_Invalid()
         {
             User user = await api.GetUserAsync("InvalidUser");
             UserProfile userProfile = await api.GetUserProfileAsync(user);
-            Assert.IsNull(userProfile);
+            Assert.Null(userProfile);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateUserProfile()
         {
             User user = await api.GetUserAsync("ValidUser");
             UserProfile userProfile = await api.GetUserProfileAsync(user);
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "BioText", "Updated bio" } };
             UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(userProfile, updates);
-            Assert.IsNotNull(updatedUserProfile);
-            Assert.AreEqual("Updated bio", updatedUserProfile.BioText);
-            Assert.AreEqual("Valid User", updatedUserProfile.DisplayName);
+            Assert.NotNull(updatedUserProfile);
+            Assert.Equal("Updated bio", updatedUserProfile.BioText);
+            Assert.Equal("Valid User", updatedUserProfile.DisplayName);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateUserProfile_ByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "BioText", "Updated bio" } };
             UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, updates);
-            Assert.IsNotNull(updatedUserProfile);
-            Assert.AreEqual("Updated bio", updatedUserProfile.BioText);
-            Assert.AreEqual("Valid User", updatedUserProfile.DisplayName);
+            Assert.NotNull(updatedUserProfile);
+            Assert.Equal("Updated bio", updatedUserProfile.BioText);
+            Assert.Equal("Valid User", updatedUserProfile.DisplayName);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateUserProfile_InvalidUser()
         {
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync((User)null, updates);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateUserProfileAsync((User)null, updates));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateUserProfile_InvalidArguments()
         {
             User user = await api.GetUserAsync("InvalidUser");
-            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, null);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateUserProfileAsync(user, null));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateUserProfile_InvalidUser_ByUser()
         {
             User user = await api.GetUserAsync("InvalidUser");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, updates);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateUserProfileAsync(user, updates));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task UpdateUserProfile_Invalid()
         {
             User user = await api.GetUserAsync("ValidUser");
             UserProfile userProfile = await api.GetUserProfileAsync(user);
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(userProfile, updates);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateUserProfileAsync(userProfile, updates));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task UpdateUserProfile_Invalid_ByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, updates);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateUserProfileAsync(user, updates));
         }
     }
 }

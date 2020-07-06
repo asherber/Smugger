@@ -1,19 +1,17 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace SmugMug.NET.Tests
 {
-    [TestClass]
     public class FolderUnitTests
     {
         private ISmugMugClient api;
 
-        [TestInitialize()]
-        public void InitializeAnonymous()
+        public FolderUnitTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
@@ -82,263 +80,261 @@ namespace SmugMug.NET.Tests
             api = mock.Object;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "ValidFolder");
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetNullFolder()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", null);
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetRootFolder()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "");
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder_InvalidFolder()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "InvalidFolder");
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder_InvalidUser()
         {
             Folder folder = await api.GetFolderAsync("InvalidUser", "ValidFolder");
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder_InvalidFolderAndUser()
         {
             Folder folder = await api.GetFolderAsync("InvalidUser", "InvalidFolder");
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolderByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.GetFolderAsync(user, "ValidFolder");
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetNullFolderByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.GetFolderAsync(user, null);
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetRootFolderByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.GetFolderAsync(user, "");
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder_InvalidFolderByUser()
         {
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.GetFolderAsync(user, "InvalidFolder");
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder_InvalidUserByUser()
         {
             User user = await api.GetUserAsync("InvalidUser");
             Folder folder = await api.GetFolderAsync(user, "ValidFolder");
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetFolder_InvalidFolderAndUserByUser()
         {
             User user = await api.GetUserAsync("InvalidUser");
             Folder folder = await api.GetFolderAsync(user, "InvalidFolder");
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_NoArguments()
         {
             Folder folder = await api.CreateFolderAsync("NewFolder", "ValidUser", "ValidPath", new Dictionary<string, string>()); //TODO: Should be null for final argument
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
-            Assert.IsNull(folder.Description);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
+            Assert.Null(folder.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByUser_NoArguments()
         {
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.CreateFolderAsync("NewFolder", user, "ValidPath", new Dictionary<string, string>()); //TODO: Should be null for final argument
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
-            Assert.IsNull(folder.Description);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
+            Assert.Null(folder.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByFolder_NoArguments()
         {
             Folder validFolder = await api.GetFolderAsync("ValidUser", "");
             Folder folder = await api.CreateFolderAsync("NewFolder", validFolder, new Dictionary<string, string>()); //TODO: Should be null for final argument
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
-            Assert.IsNull(folder.Description);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
+            Assert.Null(folder.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_InvalidPath()
         {
             Folder folder = await api.CreateFolderAsync("NewFolder", "ValidUser", "InvalidPath", null);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByUser_InvalidPath()
         {
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.CreateFolderAsync("NewFolder", user, "InvalidPath", null);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByFolder_InvalidFolder()
         {
             Folder invalidFolder = await api.GetFolderAsync("ValidUser", "InvalidFolder");
             Folder folder = await api.CreateFolderAsync("NewFolder", invalidFolder, null);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_InvalidUser()
         {
             Folder folder = await api.CreateFolderAsync("NewFolder", "InValidUser", "InvalidPath", null);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByUser_InvalidUser()
         {
             User user = await api.GetUserAsync("InValidUser");
             Folder folder = await api.CreateFolderAsync("NewFolder", user, "InvalidPath", null);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_WithArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Description", "Description" } };
             Folder folder = await api.CreateFolderAsync("NewFolder", "ValidUser", "ValidPath", arguments);
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
-            Assert.AreEqual("Description", folder.Description);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
+            Assert.Equal("Description", folder.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByUser_WithArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Description", "Description" } };
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.CreateFolderAsync("NewFolder", user, "ValidPath", arguments);
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
-            Assert.AreEqual("Description", folder.Description);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
+            Assert.Equal("Description", folder.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByFolder_WithArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Description", "Description" } };
             Folder validFolder = await api.GetFolderAsync("ValidUser", "");
             Folder folder = await api.CreateFolderAsync("NewFolder", validFolder, arguments);
-            Assert.IsNotNull(folder);
-            Assert.AreEqual("ValidFolder", folder.Name);
-            Assert.AreEqual("ABCDE", folder.NodeID);
-            Assert.AreEqual("Description", folder.Description);
+            Assert.NotNull(folder);
+            Assert.Equal("ValidFolder", folder.Name);
+            Assert.Equal("ABCDE", folder.NodeID);
+            Assert.Equal("Description", folder.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_WithInvalidArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
             Folder folder = await api.CreateFolderAsync("NewFolder", "ValidUser", "ValidPath", arguments);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByUser_WithInvalidArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
             User user = await api.GetUserAsync("ValidUser");
             Folder folder = await api.CreateFolderAsync("NewFolder", user, "ValidPath", arguments);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateFolder_ByFolder_WithInvalidArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
             Folder validFolder = await api.GetFolderAsync("ValidUser", "");
             Folder folder = await api.CreateFolderAsync("NewFolder", validFolder, arguments);
-            Assert.IsNull(folder);
+            Assert.Null(folder);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DeleteFolder()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "ValidFolder");
             await api.DeleteFolderAsync(folder);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task DeleteFolder_Invalid()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "InvalidFolder");
-            await api.DeleteFolderAsync(folder);
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>api.DeleteFolderAsync(folder));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task DeleteFolder_Unowned()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "UnownedFolder");
-            await api.DeleteFolderAsync(folder);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.DeleteFolderAsync(folder));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateFolder()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "ValidFolder");
@@ -346,33 +342,30 @@ namespace SmugMug.NET.Tests
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Name", "Updated folder" } };
 
             Folder updatedFolder = await api.UpdateFolderAsync(folder, updates);
-            Assert.IsNotNull(updatedFolder);
-            Assert.AreEqual("Updated folder", updatedFolder.Name);
+            Assert.NotNull(updatedFolder);
+            Assert.Equal("Updated folder", updatedFolder.Name);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateFolder_InvalidFolder()
         {
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            Folder updatedFolder = await api.UpdateFolderAsync((Folder)null, updates);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateFolderAsync((Folder)null, updates));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateFolder_InvalidFolderNullArguments()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "InvalidFolder");
-            Folder updatedFolder = await api.UpdateFolderAsync(folder, null);
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>api.UpdateFolderAsync(folder, null));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task UpdateFolder_InvalidArguments()
         {
             Folder folder = await api.GetFolderAsync("ValidUser", "ValidFolder");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            Folder updatedFolder = await api.UpdateFolderAsync(folder, updates);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateFolderAsync(folder, updates));
         }
     }
 }

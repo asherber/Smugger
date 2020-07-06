@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Moq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -8,13 +8,11 @@ using System.Net.Http;
 
 namespace SmugMug.NET.Tests
 {
-    [TestClass]
     public class UserUnitTests
     {
         private ISmugMugClient api;
 
-        [TestInitialize()]
-        public void InitializeAnonymous()
+        public UserUnitTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
@@ -45,91 +43,91 @@ namespace SmugMug.NET.Tests
             api = mock.Object;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUser()
         {
             User user = await api.GetUserAsync("ValidUser");
-            Assert.IsNotNull(user);
-            Assert.AreEqual("Valid User", user.Name);
-            Assert.AreEqual("ValidUser", user.NickName);
-            Assert.AreEqual("/api/v2/node/ABCDE", user.Uris.Node.Uri);
+            Assert.NotNull(user);
+            Assert.Equal("Valid User", user.Name);
+            Assert.Equal("ValidUser", user.NickName);
+            Assert.Equal("/api/v2/node/ABCDE", user.Uris.Node.Uri);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUser_Invalid()
         {
             User user = await api.GetUserAsync("InvalidUser");
-            Assert.IsNull(user);
+            Assert.Null(user);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserAlbums()
         {
             User user = await api.GetUserAsync("ValidUser");
             List<Album> albums = await api.GetAlbumsAsync(user);
-            Assert.IsNotNull(albums);
-            Assert.IsTrue(albums.Count > 0);
+            Assert.NotNull(albums);
+            Assert.True(albums.Count > 0);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserAlbums_Invalid()
         {
             User user = await api.GetUserAsync("InvalidUser");
             List<Album> albums = await api.GetAlbumsAsync(user);
-            Assert.IsNull(albums);
+            Assert.Null(albums);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserAlbums_withLimit()
         {
             User user = await api.GetUserAsync("ValidUser");
             List<Album> albums = await api.GetAlbumsAsync(user, 3);
-            Assert.IsNotNull(albums);
-            Assert.AreEqual(3, albums.Count);
+            Assert.NotNull(albums);
+            Assert.Equal(3, albums.Count);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserAlbums_withInvalidLimit()
         {
             User user = await api.GetUserAsync("ValidUser");
             List<Album> albums = await api.GetAlbumsAsync(user, -1);
-            Assert.IsNull(albums);
+            Assert.Null(albums);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserFeaturedAlbums()
         {
             User user = await api.GetUserAsync("ValidUser");
             List<Album> albums = await api.GetFeaturedAlbumsAsync(user);
-            Assert.IsNotNull(albums);
-            Assert.IsTrue(albums.Count > 0);
+            Assert.NotNull(albums);
+            Assert.True(albums.Count > 0);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserFeaturedAlbums_withLimit()
         {
             User user = await api.GetUserAsync("ValidUser");
             List<Album> albums = await api.GetFeaturedAlbumsAsync(user, 3);
-            Assert.IsNotNull(albums);
-            Assert.AreEqual(3, albums.Count());
+            Assert.NotNull(albums);
+            Assert.Equal(3, albums.Count());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetUserFeaturedAlbums_withInvalidLimit()
         {
             User user = await api.GetUserAsync("ValidUser");
             List<Album> albums = await api.GetFeaturedAlbumsAsync(user, -1);
-            Assert.IsNull(albums);
+            Assert.Null(albums);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetDefaultNodeId()
         {
             User user = await api.GetUserAsync("ValidUser");
-            Assert.IsNotNull(user);
+            Assert.NotNull(user);
 
             string defaultNodeId = api.GetDefaultNodeIDAsync(user);
-            Assert.AreEqual("ABCDE", defaultNodeId);
+            Assert.Equal("ABCDE", defaultNodeId);
         }
     }
 }

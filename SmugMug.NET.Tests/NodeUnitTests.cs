@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Xunit;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 
 namespace SmugMug.NET.Tests
 {
-    [TestClass]
     public class NodeUnitTests
     {
         private ISmugMugClient api;
 
-        [TestInitialize()]
-        public void InitializeAnonymous()
+        public NodeUnitTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
@@ -75,167 +73,165 @@ namespace SmugMug.NET.Tests
             api = mock.Object;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetNode()
         {
             Node node = await api.GetNodeAsync("ValidNode");
-            Assert.IsNotNull(node);
-            Assert.AreEqual("ValidNode", node.Name);
-            Assert.AreEqual("ABCDE", node.NodeID);
+            Assert.NotNull(node);
+            Assert.Equal("ValidNode", node.Name);
+            Assert.Equal("ABCDE", node.NodeID);
         }
         
-        [TestMethod]
+        [Fact]
         public async Task GetNode_Invalid()
         {
             Node node = await api.GetNodeAsync("InvalidNode");
-            Assert.IsNull(node);
+            Assert.Null(node);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetNode_Unowned()
         {
             Node node = await api.GetNodeAsync("Unowned`Node");
-            Assert.IsNull(node);
+            Assert.Null(node);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetRootNode()
         {
             User user = await api.GetUserAsync("ValidUser");
             Node node = await api.GetRootNodeAsync(user);
-            Assert.IsNotNull(node);
-            Assert.AreEqual("ValidNode", node.Name);
-            Assert.AreEqual("ABCDE", node.NodeID);
+            Assert.NotNull(node);
+            Assert.Equal("ValidNode", node.Name);
+            Assert.Equal("ABCDE", node.NodeID);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetRootNode_Invalid()
         {
             User user = await api.GetUserAsync("InvalidUser");
             Node node = await api.GetRootNodeAsync(user);
-            Assert.IsNull(node);
+            Assert.Null(node);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetChildNodes()
         {
             Node node = await api.GetNodeAsync("ValidNode");
             List<Node> childNodes = await api.GetChildNodesAsync(node);
-            Assert.IsNotNull(childNodes);
-            Assert.IsTrue(childNodes.Count > 0);
+            Assert.NotNull(childNodes);
+            Assert.True(childNodes.Count > 0);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetChildNodes_InvalidNode()
         {
             Node node = await api.GetNodeAsync("InvalidNode");
             List<Node> childNodes = await api.GetChildNodesAsync(node);
-            Assert.IsNull(childNodes);
+            Assert.Null(childNodes);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetChildNodes_NoChildren()
         {
             Node node = await api.GetNodeAsync("ValidNodeNoChildren");
             List<Node> childNodes = await api.GetChildNodesAsync(node);
-            Assert.IsNull(childNodes);
+            Assert.Null(childNodes);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetChildNodes_withLimit()
         {
             Node node = await api.GetNodeAsync("ValidNode");
             List<Node> childNodes = await api.GetChildNodesAsync(node, 3);
-            Assert.IsNotNull(childNodes);
-            Assert.AreEqual(3, childNodes.Count);
+            Assert.NotNull(childNodes);
+            Assert.Equal(3, childNodes.Count);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GetChildNodes_withInvalidLimit()
         {
             Node node = await api.GetNodeAsync("ValidNode");
             List<Node> childNodes = await api.GetChildNodesAsync(node, -1);
-            Assert.IsNull(childNodes);
+            Assert.Null(childNodes);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateNode_Album_NoArguments()
         {
             Node node = await api.CreateNodeAsync(NodeType.Album, "AlbumNode", "ValidPath");
-            Assert.IsNotNull(node);
-            Assert.AreEqual(NodeType.Album, node.Type);
-            Assert.AreEqual("AlbumNode", node.Name);
+            Assert.NotNull(node);
+            Assert.Equal(NodeType.Album, node.Type);
+            Assert.Equal("AlbumNode", node.Name);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateNode_Folder_NoArguments()
         {
             Node node = await api.CreateNodeAsync(NodeType.Folder, "FolderNode", "ValidPath", new Dictionary<string, string>()); //TODO: Should be null for final argument
-            Assert.IsNotNull(node);
-            Assert.AreEqual(NodeType.Folder, node.Type);
-            Assert.AreEqual("FolderNode", node.Name);
-            Assert.IsNull(node.Description);
+            Assert.NotNull(node);
+            Assert.Equal(NodeType.Folder, node.Type);
+            Assert.Equal("FolderNode", node.Name);
+            Assert.Null(node.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateNode_Folder_WithArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Description", "Description" } };
             Node node = await api.CreateNodeAsync(NodeType.Folder, "FolderNode", "ValidPath", arguments);
-            Assert.IsNotNull(node);
-            Assert.AreEqual(NodeType.Folder, node.Type);
-            Assert.AreEqual("FolderNode", node.Name);
-            Assert.AreEqual("Description", node.Description);
+            Assert.NotNull(node);
+            Assert.Equal(NodeType.Folder, node.Type);
+            Assert.Equal("FolderNode", node.Name);
+            Assert.Equal("Description", node.Description);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateNode_Page_NoArguments()
         {
             Node node = await api.CreateNodeAsync(NodeType.Page, "PageNode", "ValidPath");
-            Assert.IsNotNull(node);
-            Assert.AreEqual(NodeType.Page, node.Type);
-            Assert.AreEqual("PageNode", node.Name);
+            Assert.NotNull(node);
+            Assert.Equal(NodeType.Page, node.Type);
+            Assert.Equal("PageNode", node.Name);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateNode_InvalidPath()
         {
             Node node = await api.CreateNodeAsync(NodeType.Folder, "FolderNode", "InvalidPath");
-            Assert.IsNull(node);
+            Assert.Null(node);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateNode_Folder_WithInvalidArguments()
         {
             Dictionary<string, string> arguments = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
             Node node = await api.CreateNodeAsync(NodeType.Folder, "FolderNode", "ValidPath", arguments);
-            Assert.IsNull(node);
+            Assert.Null(node);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DeleteNode()
         {
             Node node = await api.GetNodeAsync("ValidNode");
             await api.DeleteNodeAsync(node);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task DeleteNode_Invalid()
         {
             Node node = await api.GetNodeAsync("InvalidNode");
-            await api.DeleteNodeAsync(node);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.DeleteNodeAsync(node));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task DeleteNode_Unowned()
         {
             Node node = await api.GetNodeAsync("UnownedNode");
-            await api.DeleteNodeAsync(node);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.DeleteNodeAsync(node));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UpdateNode()
         {
             Node node = await api.GetNodeAsync("ValidNode");
@@ -243,33 +239,30 @@ namespace SmugMug.NET.Tests
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Name", "Updated node" } };
 
             Node updatedNode = await api.UpdateNodeAsync(node, updates);
-            Assert.IsNotNull(updatedNode);
-            Assert.AreEqual("Updated node", updatedNode.Name);
+            Assert.NotNull(updatedNode);
+            Assert.Equal("Updated node", updatedNode.Name);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateNode_InvalidNode()
         {
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            Node updatedNode = await api.UpdateNodeAsync((Node)null, updates);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateNodeAsync((Node)null, updates));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [Fact]
         public async Task UpdateNode_InvalidNodeNullArguments()
         {
             Node node = await api.GetNodeAsync("InvalidNode");
-            Node updatedNode = await api.UpdateNodeAsync(node, null);
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateNodeAsync(node, null));
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(HttpRequestException))]
+        [Fact]
         public async Task UpdateNode_InvalidArguments()
         {
             Node node = await api.GetNodeAsync("ValidNode");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            Node updatedNode = await api.UpdateNodeAsync(node, updates);
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateNodeAsync(node, updates));
         }
     }
 }
