@@ -317,6 +317,8 @@ namespace SmugMug.NET
 
         private async Task<UserProfile> UpdateUserProfileAsync(string uri, Dictionary<string, string> updates)
         {
+            CheckForOAuth("update a user profile");
+
             if (updates != null && updates.Count > 0)
             {
                 string content = GenerateJson(updates);
@@ -330,11 +332,14 @@ namespace SmugMug.NET
             }
         }
 
+        private void CheckForOAuth(string action)
+        {
+            if (LoginType != LoginType.OAuth)
+                throw new UnauthorizedAccessException($"You must be logged in using OAuth to {action}.");
+        }
+
         public async Task<UserProfile> UpdateUserProfileAsync(UserProfile userProfile, Dictionary<string, string> updates)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to update a user profile.");
-
             if (userProfile != null)
             {
                 return await UpdateUserProfileAsync(userProfile.Uri, updates).ConfigureAwait(false);
@@ -347,9 +352,6 @@ namespace SmugMug.NET
 
         public async Task<UserProfile> UpdateUserProfileAsync(User user, Dictionary<string, string> updates)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to update a user profile.");
-
             if (user != null)
             {
                 return await UpdateUserProfileAsync(user.Uris.UserProfile.Uri, updates).ConfigureAwait(false);
@@ -431,8 +433,7 @@ namespace SmugMug.NET
 
         public async Task<Node> CreateNodeAsync(NodeType nodeType, string nodeName, string folderNodeId, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create a node.");
+            CheckForOAuth("create a node");
 
             Node parentNode = await GetNodeAsync(folderNodeId).ConfigureAwait(false);
             if (parentNode != null)
@@ -459,8 +460,7 @@ namespace SmugMug.NET
 
         public async Task<Node> UpdateNodeAsync(Node node, Dictionary<string, string> updates)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to update a node.");
+            CheckForOAuth("update a node");
 
             if (node != null)
             {
@@ -529,9 +529,6 @@ namespace SmugMug.NET
 
         public async Task<Folder> CreateFolderAsync(string folderName, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
-
             Folder parentFolder = await GetFolderAsync(userNickName, folderPath).ConfigureAwait(false);
             if (parentFolder != null)
             {
@@ -545,9 +542,6 @@ namespace SmugMug.NET
 
         public async Task<Folder> CreateFolderAsync(string folderName, User user, string folderPath, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
-
             Folder parentFolder = await GetFolderAsync(user, folderPath).ConfigureAwait(false);
             if (parentFolder != null)
             {
@@ -561,8 +555,7 @@ namespace SmugMug.NET
 
         public async Task<Folder> CreateFolderAsync(string folderName, Folder folder, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
+            CheckForOAuth("create a folder");
 
             if (folderName.Length > 32)
                 throw new ArgumentException("Folder names must be less than 32 characters long.", folderName);
@@ -575,8 +568,7 @@ namespace SmugMug.NET
 
         public async Task<Folder> UpdateFolderAsync(Folder folder, Dictionary<string, string> updates)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to update a folder.");
+            CheckForOAuth("update a folder");
 
             if (folder != null)
             {
@@ -729,18 +721,12 @@ namespace SmugMug.NET
 
         public async Task<Album> CreateAlbumAsync(string albumTitle, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
-
             User user = await GetUserAsync(userNickName).ConfigureAwait(false);
             return await CreateAlbumAsync(albumTitle, user, folderPath, arguments).ConfigureAwait(false);
         }
 
         public async Task<Album> CreateAlbumAsync(string albumTitle, User user, string folderPath, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create an album.");
-
             Folder parentFolder = await GetFolderAsync(user, folderPath).ConfigureAwait(false);
             if (parentFolder != null)
             {
@@ -754,8 +740,7 @@ namespace SmugMug.NET
 
         public async Task<Album> CreateAlbumAsync(string albumTitle, Folder folder, Dictionary<string, string> arguments = null)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to create an album.");
+            CheckForOAuth("create an album");
 
             if (albumTitle.Length > 32)
                 throw new ArgumentException("Album titles must be less than 32 characters long.", albumTitle);
@@ -768,8 +753,7 @@ namespace SmugMug.NET
 
         public async Task<Album> UpdateAlbumAsync(Album album, Dictionary<string, string> updates)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to update an album.");
+            CheckForOAuth("update an album");
 
             if (album != null)
             {
@@ -847,8 +831,7 @@ namespace SmugMug.NET
 
         public async Task<ImageUpload> UploadImageAsync(string albumUri, string filePath)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to upload an image.");
+            CheckForOAuth("upload an image");
 
             if (File.Exists(filePath))
             {
@@ -866,9 +849,6 @@ namespace SmugMug.NET
 
         public async Task<ImageUpload> UploadImageAsync(Node node, string filePath)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to upload an image.");
-
             if (node.Type != NodeType.Album)
                 throw new ArgumentException("Images can only be uploaded to album nodes.");
 
@@ -877,16 +857,12 @@ namespace SmugMug.NET
 
         public async Task<ImageUpload> UploadImageAsync(Album album, string filePath)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to upload an image.");
-
             return await UploadImageAsync(album.Uri, filePath).ConfigureAwait(false);
         }
 
         public async Task<Image> UpdateImageAsync(Image image, Dictionary<string, string> updates)
         {
-            if (LoginType == LoginType.Anonymous)
-                throw new UnauthorizedAccessException("You must be logged in using OAuth to update an image.");
+            CheckForOAuth("update an image");
 
             if (image != null)
             {
