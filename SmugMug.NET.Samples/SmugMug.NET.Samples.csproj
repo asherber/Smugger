@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ProjectGuid>{D52D8311-FE8F-4DD5-BB3E-ABBA311F9548}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyTitle>SmugMug.NET.Samples</AssemblyTitle>
     <Company>Justin Marks</Company>
@@ -14,7 +14,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="2.4.2" />
-    <PackageReference Include="OAuth" Version="1.0.3" />
+    <PackageReference Include="TinyOAuth1" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SmugMug.NET\SmugMug.NET.csproj" />

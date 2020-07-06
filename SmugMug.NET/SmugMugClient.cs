@@ -1,7 +1,4 @@
-﻿using DotNetOpenAuth.Messaging;
-using DotNetOpenAuth.OAuth;
-using DotNetOpenAuth.OAuth.ChannelElements;
-using Flurl;
+﻿using Flurl;
 using Flurl.Http;
 using Newtonsoft.Json.Linq;
 using System;
@@ -15,18 +12,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.XPath;
+using TinyOAuth1;
 
 namespace SmugMug.NET
 {
     public class SmugMugClient : ISmugMugClient
     {
-        private InMemoryTokenManager _smugmugTokenManager = new InMemoryTokenManager();
-        private DesktopConsumer _smugmugConsumer;
-        private ServiceProviderDescription _smugmugServiceDescription = new ServiceProviderDescription
-        {
-            TamperProtectionElements = new ITamperProtectionChannelBindingElement[] { new HmacSha1SigningBindingElement() },
-            ProtocolVersion = ProtocolVersion.V10a
-        };
+        private OAuthCredentials _credentials;
+        private ITinyOAuth _oauthClient;
 
         const string SMUGMUG_API_v2_BaseEndpoint = "https://api.smugmug.com";
         const string SMUGMUG_API_v2_ApiEndpoint = "https://api.smugmug.com/api/v2/";
@@ -34,7 +27,7 @@ namespace SmugMug.NET
 
         public LoginType LoginType { get; private set; }
 
-        public SmugMugClient(string apiKey) : this(LoginType.Anonymous, new OAuthCredentials(apiKey))
+        public SmugMugClient(string apiKey) : this(LoginType.Anonymous, new OAuthCredentials() { ConsumerKey = apiKey })
         {
         }
 
@@ -42,19 +35,20 @@ namespace SmugMug.NET
         {
         }
 
-        private SmugMugClient(LoginType loginType, OAuthCredentials creds)
+        public SmugMugClient(string consumerKey, string consumerSecret, string accessToken, string accessTokenSecret) 
+            : this(LoginType.OAuth, new OAuthCredentials(consumerKey, consumerSecret, accessToken, accessTokenSecret))
+        {
+        }
+
+        private SmugMugClient(LoginType loginType, OAuthCredentials credentials)
         {
             LoginType = loginType;
-            _smugmugTokenManager.ConsumerKey = creds.ConsumerKey;
-            _smugmugTokenManager.ConsumerSecret = creds.ConsumerSecret;
-
-            if (loginType == LoginType.OAuth)
+            _credentials = credentials;
+            _oauthClient = new TinyOAuth(new TinyOAuthConfig()
             {
-                _smugmugTokenManager.AccessToken = creds.AccessToken;
-                _smugmugTokenManager.StoreNewAccessToken(creds.AccessToken, creds.AccessTokenSecret);
-            }
-
-            _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
+                ConsumerKey = credentials.ConsumerKey,
+                ConsumerSecret = credentials.ConsumerSecret
+            });
         }
 
         #region REST Requests
@@ -65,10 +59,10 @@ namespace SmugMug.NET
 
         private IFlurlRequest CreateRequest(string baseAddress, string endpoint)
         {
-            return CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.GetRequest);
+            return CreateRequest(baseAddress, endpoint, HttpMethod.Get);
         }
 
-        private IFlurlRequest CreateRequest(string baseAddress, string endpoint, HttpDeliveryMethods deliveryMethods)
+        private IFlurlRequest CreateRequest(string baseAddress, string endpoint, HttpMethod method)
         {
             var result = new FlurlRequest(Url.Combine(baseAddress, endpoint))
                 .WithHeader("Accept", "application/json");
@@ -76,15 +70,13 @@ namespace SmugMug.NET
             switch (LoginType)
             {
                 case LoginType.Anonymous:
-                    result.SetQueryParam("APIKey", _smugmugTokenManager.ConsumerKey);
+                    result.SetQueryParam("APIKey", _credentials.ConsumerKey);
                     break;
                 case LoginType.OAuth:
-                    var resourceHttpMethod = deliveryMethods | HttpDeliveryMethods.AuthorizationHeaderRequest;
-
-                    var resourceEndpoint = new MessageReceivingEndpoint(result.Url, resourceHttpMethod);
-                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
-
-                    result.WithHeader("Authorization", httpRequest.Headers["Authorization"]);
+                    var authHeader = _oauthClient.GetAuthorizationHeader(_credentials.AccessToken, _credentials.AccessTokenSecret, 
+                        result.Url, method);
+                    
+                    result.WithHeader("Authorization", authHeader);
                     break;
                 default:
                     throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
@@ -127,7 +119,7 @@ namespace SmugMug.NET
 
         private async Task<T> PostRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
-            var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.PostRequest);
+            var request = CreateRequest(baseAddress, endpoint, HttpMethod.Post);
 
             try
             {
@@ -167,7 +159,7 @@ namespace SmugMug.NET
             if (LoginType != LoginType.OAuth)
                 throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
 
-            var request = CreateRequest(SMUGMUG_API_v2_UploadEndpoint, null, HttpDeliveryMethods.PostRequest)
+            var request = CreateRequest(SMUGMUG_API_v2_UploadEndpoint, null, HttpMethod.Post)
                 .WithHeaders(new
                 {
                     X_Smug_AlbumUri = albumUri,
@@ -193,7 +185,7 @@ namespace SmugMug.NET
 
         private async Task<T> PatchRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
-            var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.PatchRequest);
+            var request = CreateRequest(baseAddress, endpoint, new HttpMethod("PATCH"));
 
             Trace.WriteLine(string.Format("PATCH {0}: {1}", request.Url, jsonContent));
             var result = await request.PatchAsync(new StringContent(jsonContent))
@@ -210,7 +202,7 @@ namespace SmugMug.NET
 
         private async Task DeleteRequestAsync(string baseAddress, string endpoint)
         {
-            var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.DeleteRequest);
+            var request = CreateRequest(baseAddress, endpoint, HttpMethod.Delete);
 
             Trace.WriteLine(string.Format("DELETE {0}", request.Url));
             var result = await request.DeleteAsync().ReceiveJson<DeleteResponseStub>().ConfigureAwait(false);

@@ -13,9 +13,8 @@ namespace SmugMug.NET
         public string AccessToken { get; set; }
         public string AccessTokenSecret { get; set; }
 
-        public OAuthCredentials(string consumerKey)
+        public OAuthCredentials()
         {
-            ConsumerKey = consumerKey;
         }
 
         public OAuthCredentials(string consumerKey, string consumerSecret, string accessToken, string accessTokenSecret)
