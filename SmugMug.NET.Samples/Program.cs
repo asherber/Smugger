@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SmugMug.NET.Samples
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("Starting anonymous authentication tests");
             var apiAnonymous = AuthenticationSample.AuthenticateUsingAnonymous();
@@ -15,7 +16,7 @@ namespace SmugMug.NET.Samples
 
 
             Console.WriteLine("Starting OAuth authentication tests");
-            var apiOAuth = AuthenticationSample.AuthenticateUsingOAuth();
+            var apiOAuth = await AuthenticationSample.AuthenticateUsingOAuth();
             FoldersSample.WorkingWithFoldersAndAlbums(apiOAuth).Wait();
             FoldersSample.ManagingFoldersAndAlbums(apiOAuth).Wait();
             NodesSample.WorkingWithNodes(apiOAuth).Wait();

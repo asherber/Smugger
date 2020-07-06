@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmugMug.NET.Tests", "SmugMug.NET.Tests\SmugMug.NET.Tests.csproj", "{31BEE271-FC6F-474A-9A98-A35AAFC9C810}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmugMug.NET", "SmugMug.NET\SmugMug.NET.csproj", "{946824B2-8707-49B4-9295-5A712A0918AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmugMug.NET.Samples", "SmugMug.NET.Samples\SmugMug.NET.Samples.csproj", "{D52D8311-FE8F-4DD5-BB3E-ABBA311F9548}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

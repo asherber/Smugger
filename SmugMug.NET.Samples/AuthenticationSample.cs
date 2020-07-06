@@ -1,8 +1,12 @@
-﻿using OAuth;
+﻿using Flurl;
+using Flurl.Http;
+using OAuth;
 using System;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace SmugMug.NET.Samples
 {
@@ -11,7 +15,7 @@ namespace SmugMug.NET.Samples
         const string CONSUMERTOKEN = "SmugMugOAuthConsumerToken";
         const string CONSUMERSECRET = "SmugMugOAuthConsumerSecret";
 
-        public static SmugMugAPI AuthenticateUsingAnonymous()
+        public static SmugMugClient AuthenticateUsingAnonymous()
         {
             //Access OAuth keys from App.config
             string consumerKey = null;
@@ -28,11 +32,11 @@ namespace SmugMug.NET.Samples
             }
 
             //Connect to SmugMug using Anonymous access
-            SmugMugAPI apiAnonymous = new SmugMugAPI(LoginType.Anonymous, new OAuthCredentials(consumerKey));
+            SmugMugClient apiAnonymous = new SmugMugClient(consumerKey);
             return apiAnonymous;
         }
 
-        public static SmugMugAPI AuthenticateUsingOAuth()
+        public static async Task<SmugMugClient> AuthenticateUsingOAuth()
         {
             //Access OAuth keys from App.config
             string consumerKey = null;
@@ -59,92 +63,61 @@ namespace SmugMug.NET.Samples
             }
 
             //Generate oAuthCredentials using OAuth library
-            OAuthCredentials oAuthCredentials = GenerateOAuthAccessToken(consumerKey, secret);
+            OAuthCredentials oAuthCredentials = await GenerateOAuthAccessTokenAsync(consumerKey, secret).ConfigureAwait(false);
 
             //Connect to SmugMug using oAuth
-            SmugMugAPI apiOAuth = new SmugMugAPI(LoginType.OAuth, oAuthCredentials);
+            SmugMugClient apiOAuth = new SmugMugClient(oAuthCredentials);
             return apiOAuth;
         }
 
-        private static OAuthCredentials GenerateOAuthAccessToken(string consumerKey, string secret)
+        private static async Task<string> GetTokenAsync(OAuthRequest request, string url)
         {
-            string baseUrl = "http://api.smugmug.com";
-            string requestUrl = "/services/oauth/1.0a/getRequestToken";
-            string authorizeUrl = "/services/oauth/1.0a/authorize";
-            string accessUrl = "/services/oauth/1.0a/getAccessToken";
+            request.RequestUrl = url;
+            var authHeader = request.GetAuthorizationHeader();
+            var result = await url.WithHeader("Authorization", authHeader).GetStringAsync();
+            return result;
+        }
 
-            string requestToken = null;
-            string requestTokenSecret = null;
-            string accesstoken = null;
-            string accessTokenSecret = null;
+        private static string GetTokenByName(string tokens, string name)
+        {
+            var parsedTokens = Url.ParseQueryParams(tokens);
+            return parsedTokens.Single(t => t.Name == name).Value.ToString();
+        }
 
-            #region Request Token
-            OAuthRequest oAuthRequest = OAuthRequest.ForRequestToken(consumerKey, secret, "oob");
-            oAuthRequest.RequestUrl = baseUrl + requestUrl;
-            string auth = oAuthRequest.GetAuthorizationHeader();
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(oAuthRequest.RequestUrl);
-            request.Headers.Add("Authorization", auth);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream responseStream = response.GetResponseStream();
-            StreamReader readStream = new StreamReader(responseStream, System.Text.Encoding.UTF8);
-            string result = readStream.ReadToEnd();
-            foreach (string token in result.Split('&'))
-            {
-                string[] splitToken = token.Split('=');
+        private static async Task<OAuthCredentials> GenerateOAuthAccessTokenAsync(string apiKey, string secret)
+        {
+            string baseUrl = "https://api.smugmug.com";
+            string requestPath = "/services/oauth/1.0a/getRequestToken";
+            string authorizePath = "/services/oauth/1.0a/authorize";
+            string accessPath = "/services/oauth/1.0a/getAccessToken";
 
-                switch (splitToken[0])
+            // Request token
+            var request = OAuthRequest.ForRequestToken(apiKey, secret, "oob");
+            var tokenResult = await GetTokenAsync(request, baseUrl.AppendPathSegment(requestPath));
+            var requestToken = GetTokenByName(tokenResult, "oauth_token");
+            var requestTokenSecret = GetTokenByName(tokenResult, "oauth_token_secret");
+
+            // Authorization
+            var authorizationUrl = baseUrl.AppendPathSegment(authorizePath)
+                .SetQueryParams(new
                 {
-                    case "oauth_token":
-                        requestToken = splitToken[1];
-                        break;
-                    case "oauth_token_secret":
-                        requestTokenSecret = splitToken[1];
-                        break;
-                    default:
-                        break;
-                }
-            }
-            response.Close();
-            #endregion
-
-            #region Authorization
-            string authorizationUrl = String.Format("{0}{1}?mode=auth_req_token&oauth_token={2}&Access=Full&Permissions=Modify", baseUrl, authorizeUrl, requestToken);
+                    mode = "auth_req_token",
+                    oauth_token = requestToken,
+                    Access = "Full",
+                    Permissions = "Modify"
+                });
             System.Diagnostics.Process.Start(authorizationUrl);
 
             Console.WriteLine("Enter the six-digit code: ");
             string verifier = Console.ReadLine();
-            #endregion
 
-            #region Access Token
-            oAuthRequest = OAuthRequest.ForAccessToken(consumerKey, secret, requestToken, requestTokenSecret, verifier);
-            oAuthRequest.RequestUrl = baseUrl + accessUrl;
-            auth = oAuthRequest.GetAuthorizationHeader();
-            request = (HttpWebRequest)WebRequest.Create(oAuthRequest.RequestUrl);
-            request.Headers.Add("Authorization", auth);
-            response = (HttpWebResponse)request.GetResponse();
-            responseStream = response.GetResponseStream();
-            readStream = new StreamReader(responseStream, System.Text.Encoding.UTF8);
-            result = readStream.ReadToEnd();
-            foreach (string token in result.Split('&'))
-            {
-                string[] splitToken = token.Split('=');
+            // Access Token
+            request = OAuthRequest.ForAccessToken(apiKey, secret, requestToken, requestTokenSecret, verifier);
+            tokenResult = await GetTokenAsync(request, baseUrl.AppendPathSegment(accessPath));
+            var accessToken = GetTokenByName(tokenResult, "oauth_token");
+            var accessTokenSecret = GetTokenByName(tokenResult, "oauth_token_secret");
 
-                switch (splitToken[0])
-                {
-                    case "oauth_token":
-                        accesstoken = splitToken[1];
-                        break;
-                    case "oauth_token_secret":
-                        accessTokenSecret = splitToken[1];
-                        break;
-                    default:
-                        break;
-                }
-            }
-            response.Close();
-            #endregion
-
-            return new OAuthCredentials(consumerKey, secret, accesstoken, accessTokenSecret);
+            return new OAuthCredentials(apiKey, secret, accessToken, accessTokenSecret);
         }
     }
 }
