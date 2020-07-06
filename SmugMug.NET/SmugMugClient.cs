@@ -13,6 +13,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 
 namespace SmugMug.NET
 {
@@ -54,6 +55,8 @@ namespace SmugMug.NET
                 _smugmugTokenManager.AccessToken = creds.AccessToken;
                 _smugmugTokenManager.StoreNewAccessToken(creds.AccessToken, creds.AccessTokenSecret);
             }
+
+            _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
         }
 
         #region REST Requests
@@ -62,31 +65,39 @@ namespace SmugMug.NET
             return await GetRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
-        private string AddApiKey(string endpoint) => endpoint.SetQueryParam("APIKey", _smugmugTokenManager.ConsumerKey);
+        private IFlurlRequest CreateRequest(string baseAddress, string endpoint)
+        {
+            return CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.GetRequest);
+        }
+
+        private IFlurlRequest CreateRequest(string baseAddress, string endpoint, HttpDeliveryMethods deliveryMethods)
+        {
+            var result = new FlurlRequest(Url.Combine(baseAddress, endpoint))
+                .WithHeader("Accept", "application/json");
+
+            switch (LoginType)
+            {
+                case LoginType.Anonymous:
+                    result.SetQueryParam("APIKey", _smugmugTokenManager.ConsumerKey);
+                    break;
+                case LoginType.OAuth:
+                    var resourceHttpMethod = deliveryMethods | HttpDeliveryMethods.AuthorizationHeaderRequest;
+
+                    var resourceEndpoint = new MessageReceivingEndpoint(result.Url, resourceHttpMethod);
+                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
+
+                    result.WithHeader("Authorization", httpRequest.Headers["Authorization"]);
+                    break;
+                default:
+                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
+            }
+
+            return result;
+        }
 
         private async Task<T> GetRequestAsync<T>(string baseAddress, string endpoint)
         {
-            var request = new FlurlRequest(Url.Combine(baseAddress, endpoint))
-                .WithHeader("Accept", "application/json");
-                                
-            if (LoginType == LoginType.Anonymous)
-            {
-                request.SetQueryParam("APIKey", _smugmugTokenManager.ConsumerKey);
-            }
-            else if (LoginType == LoginType.OAuth)
-            {
-                _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
-                HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.GetRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
-
-                var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
-
-                request.WithHeader("Authorization", httpRequest.Headers["Authorization"]);
-            }
-            else
-            {
-                throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-            }
+            var request = CreateRequest(baseAddress, endpoint);
 
             HttpResponseMessage httpResponse = await request.GetAsync().ConfigureAwait(false);
             System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
@@ -103,6 +114,7 @@ namespace SmugMug.NET
         }
         private async Task<Tuple<T, Dictionary<string, TE>>> GetRequestWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
         {
+            // TODO: Request is exactly teh same as above
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(baseAddress);
@@ -144,6 +156,7 @@ namespace SmugMug.NET
         {
             using (HttpClient client = new HttpClient())
             {
+                // TODO: Exactly the same, except for HttpDeliveryMethods
                 client.BaseAddress = new Uri(baseAddress);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
@@ -208,6 +221,7 @@ namespace SmugMug.NET
         {
             using (HttpClient client = new HttpClient())
             {
+                // TODO: Disallow anonymous, add extra headers, different delivery method
                 client.BaseAddress = new Uri(SMUGMUG_API_v2_UploadEndpoint);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("X-Smug-AlbumUri", albumUri);
@@ -251,6 +265,7 @@ namespace SmugMug.NET
         {
             using (HttpClient client = new HttpClient())
             {
+                // TODO: Different delivery method
                 client.BaseAddress = new Uri(baseAddress);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
@@ -290,6 +305,7 @@ namespace SmugMug.NET
         {
             using (HttpClient client = new HttpClient())
             {
+                // TODO: Different delivery method
                 client.BaseAddress = new Uri(baseAddress);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
