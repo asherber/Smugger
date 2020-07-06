@@ -99,7 +99,7 @@ namespace SmugMug.NET
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            HttpResponseMessage httpResponse = await request.GetAsync().ConfigureAwait(false);
+            var httpResponse = await request.GetAsync().ConfigureAwait(false);
             System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
             httpResponse.EnsureSuccessStatusCode();
             GetResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseStub<T>>().ConfigureAwait(false);
@@ -114,37 +114,15 @@ namespace SmugMug.NET
         }
         private async Task<Tuple<T, Dictionary<string, TE>>> GetRequestWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
         {
-            // TODO: Request is exactly teh same as above
-            using (HttpClient client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                if (LoginType == LoginType.Anonymous)
-                {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
-                }
-                else if (LoginType == LoginType.OAuth)
-                {
-                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
-                    HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.GetRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
+            var request = CreateRequest(baseAddress, endpoint);
 
-                    var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-                }
+            var httpResponse = await request.GetAsync().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
+            httpResponse.EnsureSuccessStatusCode();
+            GetResponseWithExpansionStub<T,TE> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseWithExpansionStub<T,TE>>().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
 
-                HttpResponseMessage httpResponse = client.GetAsync(endpoint).Result;
-                System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
-                httpResponse.EnsureSuccessStatusCode();
-                GetResponseWithExpansionStub<T,TE> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseWithExpansionStub<T,TE>>().ConfigureAwait(false);
-                System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
-
-                return new Tuple<T, Dictionary<string, TE>>(contentResponse.Response, contentResponse.Expansions);
-            }
+            return new Tuple<T, Dictionary<string, TE>>(contentResponse.Response, contentResponse.Expansions);            
         }
 
         private async Task<T> PostRequestAsync<T>(string endpoint, string jsonContent)
@@ -154,106 +132,71 @@ namespace SmugMug.NET
 
         private async Task<T> PostRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                // TODO: Exactly the same, except for HttpDeliveryMethods
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                if (LoginType == LoginType.Anonymous)
-                {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
-                }
-                else if (LoginType == LoginType.OAuth)
-                {
-                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
-                    HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.PostRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
+            var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.PostRequest);
 
-                    var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-                }
-
-                HttpResponseMessage httpResponse = client.PostAsync(endpoint, new StringContent(jsonContent)).Result;
-                System.Diagnostics.Trace.WriteLine(string.Format("POST {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
+            var httpResponse = await request.PostAsync(new StringContent(jsonContent)).ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("POST {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
                 
-                PostResponseStub<T> contentResponse = null;
-                if (httpResponse.IsSuccessStatusCode)
+            PostResponseStub<T> contentResponse = null;
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
+            }
+            else
+            {
+                var failedResponse = httpResponse.Content.ReadAsStringAsync();
+                JObject response = JObject.Parse(failedResponse.Result);
+                var invalidParameters =
+                    from p in response["Options"]["Parameters"]["POST"]
+                    where p["Problems"] != null
+                    select new POSTParameter
+                    {
+                        ParameterName = (string)p["Name"],
+                        Problem = (string)p["Problems"].First()
+                    };
+
+                if (invalidParameters.Count() > 0)
                 {
-                    contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
+                    List<ArgumentException> argumentExceptions = new List<ArgumentException>();
+                    foreach (POSTParameter invalidParameter in invalidParameters)
+                    {
+                        argumentExceptions.Add(new ArgumentException(invalidParameter.Problem, invalidParameter.ParameterName));
+                    }
+                    throw new AggregateException("HTTP POST Request failed.  See inner exceptions for individual reasons.", argumentExceptions.ToArray());
                 }
                 else
-                {
-                    var failedResponse = httpResponse.Content.ReadAsStringAsync();
-                    JObject response = JObject.Parse(failedResponse.Result);
-                    var invalidParameters =
-                        from p in response["Options"]["Parameters"]["POST"]
-                        where p["Problems"] != null
-                        select new POSTParameter
-                        {
-                            ParameterName = (string)p["Name"],
-                            Problem = (string)p["Problems"].First()
-                        };
-
-                    if (invalidParameters.Count() > 0)
-                    {
-                        List<ArgumentException> argumentExceptions = new List<ArgumentException>();
-                        foreach (POSTParameter invalidParameter in invalidParameters)
-                        {
-                            argumentExceptions.Add(new ArgumentException(invalidParameter.Problem, invalidParameter.ParameterName));
-                        }
-                        throw new AggregateException("HTTP POST Request failed.  See inner exceptions for individual reasons.", argumentExceptions.ToArray());
-                    }
-                    else
-                        throw new HttpRequestException("HTTP POST Request failed for unknown reasons");
-                }
-
-                System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
-
-                return contentResponse.Response;
+                    throw new HttpRequestException("HTTP POST Request failed for unknown reasons");
             }
+
+            System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
+
+            return contentResponse.Response;            
         }
 
         private async Task<ImageUpload> UploadImageAsync(string albumUri, string fileName, byte[] image, CancellationToken cancellationToken)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                // TODO: Disallow anonymous, add extra headers, different delivery method
-                client.BaseAddress = new Uri(SMUGMUG_API_v2_UploadEndpoint);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("X-Smug-AlbumUri", albumUri);
-                client.DefaultRequestHeaders.Add("X-Smug-FileName", fileName);
-                client.DefaultRequestHeaders.Add("X-Smug-ResponseType", "JSON");
-                client.DefaultRequestHeaders.Add("X-Smug-Version", "v2");
+            if (LoginType != LoginType.OAuth)
+                throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
 
-                if (LoginType == LoginType.OAuth)
+            var request = CreateRequest(SMUGMUG_API_v2_UploadEndpoint, null, HttpDeliveryMethods.PostRequest)
+                .WithHeaders(new
                 {
-                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
-                    HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.PostRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
+                    X_Smug_AlbumUri = albumUri,
+                    X_Smug_FileName = fileName,
+                    X_Smug_Response_Type = "JSON",
+                    X_Smug_Version = "v2"
+                });
 
-                    var resourceEndpoint = new MessageReceivingEndpoint(SMUGMUG_API_v2_UploadEndpoint, resourceHttpMethod);
-                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
+            
+            var content = new StreamContent(new MemoryStream(image));
+            var httpResponse = await request.PostAsync(content, cancellationToken).ConfigureAwait(false);
 
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-                }
+            System.Diagnostics.Trace.WriteLine(string.Format("POST {0}", httpResponse.RequestMessage.RequestUri));
+            httpResponse.EnsureSuccessStatusCode();
+            ImagePostResponse contentResponse = await httpResponse.Content.ReadAsAsync<ImagePostResponse>().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Stat, contentResponse.Method, contentResponse.Image));
 
-                var content = new StreamContent(new MemoryStream(image));
-
-                HttpResponseMessage httpResponse = client.PostAsync(SMUGMUG_API_v2_UploadEndpoint, content, cancellationToken).Result;
-                System.Diagnostics.Trace.WriteLine(string.Format("POST {0}", httpResponse.RequestMessage.RequestUri));
-                httpResponse.EnsureSuccessStatusCode();
-                ImagePostResponse contentResponse = await httpResponse.Content.ReadAsAsync<ImagePostResponse>().ConfigureAwait(false);
-                System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Stat, contentResponse.Method, contentResponse.Image));
-
-                return contentResponse.Image;
-            }
+            return contentResponse.Image;           
         }
 
         private async Task<T> PatchRequestAsync<T>(string endpoint, string jsonContent)
@@ -263,37 +206,15 @@ namespace SmugMug.NET
 
         private async Task<T> PatchRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                // TODO: Different delivery method
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                if (LoginType == LoginType.Anonymous)
-                {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
-                }
-                else if (LoginType == LoginType.OAuth)
-                {
-                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
-                    HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.PatchRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
+            var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.PatchRequest);
 
-                    var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-                }
+            var httpResponse = await request.PatchAsync(new StringContent(jsonContent)).ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("PATCH {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
+            httpResponse.EnsureSuccessStatusCode();
+            PostResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
 
-                HttpResponseMessage httpResponse = client.PatchAsync(endpoint, new StringContent(jsonContent)).Result;
-                System.Diagnostics.Trace.WriteLine(string.Format("PATCH {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
-                httpResponse.EnsureSuccessStatusCode();
-                PostResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
-                System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
-
-                return contentResponse.Response;
-            }
+            return contentResponse.Response;            
         }
 
         private async Task DeleteRequestAsync(string endpoint)
@@ -303,35 +224,13 @@ namespace SmugMug.NET
 
         private async Task DeleteRequestAsync(string baseAddress, string endpoint)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                // TODO: Different delivery method
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                if (LoginType == LoginType.Anonymous)
-                {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
-                }
-                else if (LoginType == LoginType.OAuth)
-                {
-                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
-                    HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.DeleteRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
+            var request = CreateRequest(baseAddress, endpoint, HttpDeliveryMethods.DeleteRequest);
 
-                    var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-                }
-
-                HttpResponseMessage httpResponse = client.DeleteAsync(endpoint).Result;
-                System.Diagnostics.Trace.WriteLine(string.Format("DELETE {0}", httpResponse.RequestMessage.RequestUri));
-                httpResponse.EnsureSuccessStatusCode();
-                DeleteResponseStub contentResponse = await httpResponse.Content.ReadAsAsync<DeleteResponseStub>().ConfigureAwait(false);
-                System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", httpResponse.StatusCode, httpResponse.ReasonPhrase));
-            }
+            var httpResponse = await request.DeleteAsync().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("DELETE {0}", httpResponse.RequestMessage.RequestUri));
+            httpResponse.EnsureSuccessStatusCode();
+            DeleteResponseStub contentResponse = await httpResponse.Content.ReadAsAsync<DeleteResponseStub>().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", httpResponse.StatusCode, httpResponse.ReasonPhrase));            
         }
         #endregion
 
