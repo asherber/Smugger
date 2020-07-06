@@ -24,12 +24,6 @@ namespace SmugMug.NET
         private DesktopConsumer _smugmugConsumer;
         private ServiceProviderDescription _smugmugServiceDescription = new ServiceProviderDescription
         {
-            RequestTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getRequestToken", 
-                HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
-            UserAuthorizationEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/authorize", 
-                HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
-            AccessTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getAccessToken", 
-                HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
             TamperProtectionElements = new ITamperProtectionChannelBindingElement[] { new HmacSha1SigningBindingElement() },
             ProtocolVersion = ProtocolVersion.V10a
         };
