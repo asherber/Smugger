@@ -27,13 +27,21 @@ namespace SmugMug.NET
             ProtocolVersion = ProtocolVersion.V10a
         };
 
-        const string SMUGMUG_API_v2_BaseEndpoint = @"https://api.smugmug.com";
-        const string SMUGMUG_API_v2_ApiEndpoint = @"https://api.smugmug.com/api/v2/";
-        const string SMUGMUG_API_v2_UploadEndpoint = @"https://upload.smugmug.com/";
+        const string SMUGMUG_API_v2_BaseEndpoint = "https://api.smugmug.com";
+        const string SMUGMUG_API_v2_ApiEndpoint = "https://api.smugmug.com/api/v2/";
+        const string SMUGMUG_API_v2_UploadEndpoint = "https://upload.smugmug.com/";
 
         public LoginType LoginType;
 
-        public SmugMugClient(LoginType loginType, OAuthCredentials creds)
+        public SmugMugClient(string apiKey) : this(LoginType.Anonymous, new OAuthCredentials(apiKey))
+        {
+        }
+
+        public SmugMugClient(OAuthCredentials credentials) : this(LoginType.OAuth, credentials)
+        {
+        }
+
+        private SmugMugClient(LoginType loginType, OAuthCredentials creds)
         {
             LoginType = loginType;
             smugmugTokenManager.ConsumerKey = creds.ConsumerKey;
