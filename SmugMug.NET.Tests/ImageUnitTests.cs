@@ -10,12 +10,12 @@ namespace SmugMug.NET.Tests
     [TestClass]
     public class ImageUnitTests
     {
-        private ISmugMugAPI api;
+        private ISmugMugClient api;
 
         [TestInitialize()]
         public void InitializeAnonymous()
         {
-            var mock = new Mock<ISmugMugAPI>();
+            var mock = new Mock<ISmugMugClient>();
 
             Image invalidImage = null;
             Image validImage = new Image() { FileName = "ValidFileName.jpg", Title = "Valid Image", Format="JPG" };

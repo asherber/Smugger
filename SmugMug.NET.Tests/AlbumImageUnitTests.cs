@@ -9,12 +9,12 @@ namespace SmugMug.NET.Tests
     [TestClass]
     public class AlbumImageUnitTests
     {
-        private ISmugMugAPI api;
+        private ISmugMugClient api;
 
         [TestInitialize()]
         public void InitializeAnonymous()
         {
-            var mock = new Mock<ISmugMugAPI>();
+            var mock = new Mock<ISmugMugClient>();
 
             Album invalidAlbum = null;
             Album validAlbum = new Album() { Name = "ValidAlbum", ImageCount = 5 };

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SmugMug.NET
 {
-    public interface ISmugMugAPI
+    public interface ISmugMugClient
     {
         Task<Album> GetAlbum(string albumId);
         Task<List<Album>> GetAlbums(User user, int maxAlbumCount = int.MaxValue);

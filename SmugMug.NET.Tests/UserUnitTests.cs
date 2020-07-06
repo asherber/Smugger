@@ -11,12 +11,12 @@ namespace SmugMug.NET.Tests
     [TestClass]
     public class UserUnitTests
     {
-        private ISmugMugAPI api;
+        private ISmugMugClient api;
 
         [TestInitialize()]
         public void InitializeAnonymous()
         {
-            var mock = new Mock<ISmugMugAPI>();
+            var mock = new Mock<ISmugMugClient>();
 
             SmugMugUri defaultNodeUri = new SmugMugUri() { Uri = "/api/v2/node/ABCDE" };
 

@@ -10,12 +10,12 @@ namespace SmugMug.NET.Tests
     [TestClass]
     public class NodeUnitTests
     {
-        private ISmugMugAPI api;
+        private ISmugMugClient api;
 
         [TestInitialize()]
         public void InitializeAnonymous()
         {
-            var mock = new Mock<ISmugMugAPI>();
+            var mock = new Mock<ISmugMugClient>();
 
             Node invalidNode = null;
             Node validNode = new Node() { Name = "ValidNode", NodeID = "ABCDE", HasChildren = true };

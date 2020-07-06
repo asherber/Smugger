@@ -52,12 +52,12 @@
     <Compile Include="HttpClientExtensions.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="InMemoryTokenManager.cs" />
-    <Compile Include="ISmugMugAPI.cs" />
+    <Compile Include="ISmugMugClient.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="OAuthCredentials.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Response.cs" />
-    <Compile Include="SmugMugAPI.cs" />
+    <Compile Include="SmugMugClient.cs" />
     <Compile Include="SmugMugObject.cs" />
     <Compile Include="User.cs" />
     <Compile Include="UserProfile.cs" />

@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace SmugMug.NET
 {
-    public class SmugMugAPI : ISmugMugAPI
+    public class SmugMugClient : ISmugMugClient
     {
         private InMemoryTokenManager smugmugTokenManager = new InMemoryTokenManager();
         private DesktopConsumer smugmugConsumer;
@@ -33,7 +33,7 @@ namespace SmugMug.NET
 
         public LoginType LoginType;
 
-        public SmugMugAPI(LoginType loginType, OAuthCredentials creds)
+        public SmugMugClient(LoginType loginType, OAuthCredentials creds)
         {
             LoginType = loginType;
             smugmugTokenManager.ConsumerKey = creds.ConsumerKey;
