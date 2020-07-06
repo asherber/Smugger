@@ -1,6 +1,8 @@
 ﻿using DotNetOpenAuth.Messaging;
 using DotNetOpenAuth.OAuth;
 using DotNetOpenAuth.OAuth.ChannelElements;
+using Flurl;
+using Flurl.Http;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,9 +18,9 @@ namespace SmugMug.NET
 {
     public class SmugMugClient : ISmugMugClient
     {
-        private InMemoryTokenManager smugmugTokenManager = new InMemoryTokenManager();
-        private DesktopConsumer smugmugConsumer;
-        private ServiceProviderDescription smugmugServiceDescription = new ServiceProviderDescription
+        private InMemoryTokenManager _smugmugTokenManager = new InMemoryTokenManager();
+        private DesktopConsumer _smugmugConsumer;
+        private ServiceProviderDescription _smugmugServiceDescription = new ServiceProviderDescription
         {
             RequestTokenEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/getRequestToken", HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
             UserAuthorizationEndpoint = new MessageReceivingEndpoint("http://api.smugmug.com/services/oauth/1.0a/authorize", HttpDeliveryMethods.AuthorizationHeaderRequest | HttpDeliveryMethods.GetRequest),
@@ -44,13 +46,13 @@ namespace SmugMug.NET
         private SmugMugClient(LoginType loginType, OAuthCredentials creds)
         {
             LoginType = loginType;
-            smugmugTokenManager.ConsumerKey = creds.ConsumerKey;
-            smugmugTokenManager.ConsumerSecret = creds.ConsumerSecret;
+            _smugmugTokenManager.ConsumerKey = creds.ConsumerKey;
+            _smugmugTokenManager.ConsumerSecret = creds.ConsumerSecret;
 
             if (loginType == LoginType.OAuth)
             {
-                smugmugTokenManager.AccessToken = creds.AccessToken;
-                smugmugTokenManager.StoreNewAccessToken(creds.AccessToken, creds.AccessTokenSecret);
+                _smugmugTokenManager.AccessToken = creds.AccessToken;
+                _smugmugTokenManager.StoreNewAccessToken(creds.AccessToken, creds.AccessTokenSecret);
             }
         }
 
@@ -60,38 +62,39 @@ namespace SmugMug.NET
             return await GetRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
+        private string AddApiKey(string endpoint) => endpoint.SetQueryParam("APIKey", _smugmugTokenManager.ConsumerKey);
+
         private async Task<T> GetRequestAsync<T>(string baseAddress, string endpoint)
         {
-            using (HttpClient client = new HttpClient())
+            var request = new FlurlRequest(Url.Combine(baseAddress, endpoint))
+                .WithHeader("Accept", "application/json");
+                                
+            if (LoginType == LoginType.Anonymous)
             {
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                if (LoginType == LoginType.Anonymous)
-                {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
-                }
-                else if (LoginType == LoginType.OAuth)
-                {
-                    smugmugConsumer = new DesktopConsumer(smugmugServiceDescription, smugmugTokenManager);
-                    HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.GetRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
-
-                    var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, smugmugTokenManager.AccessToken);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-                }
-
-                HttpResponseMessage httpResponse = client.GetAsync(endpoint).Result;
-                System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
-                httpResponse.EnsureSuccessStatusCode();
-                GetResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseStub<T>>().ConfigureAwait(false);
-                System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
-
-                return contentResponse.Response;
+                request.SetQueryParam("APIKey", _smugmugTokenManager.ConsumerKey);
             }
+            else if (LoginType == LoginType.OAuth)
+            {
+                _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
+                HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.GetRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
+
+                var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
+                var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
+
+                request.WithHeader("Authorization", httpRequest.Headers["Authorization"]);
+            }
+            else
+            {
+                throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
+            }
+
+            HttpResponseMessage httpResponse = await request.GetAsync().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
+            httpResponse.EnsureSuccessStatusCode();
+            GetResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseStub<T>>().ConfigureAwait(false);
+            System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
+
+            return contentResponse.Response;            
         }
 
         private async Task<Tuple<T, Dictionary<string,TE>>> GetRequestWithExpansionsAsync<T, TE>(string endpoint)
@@ -106,15 +109,15 @@ namespace SmugMug.NET
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
                 {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
+                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
                 }
                 else if (LoginType == LoginType.OAuth)
                 {
-                    smugmugConsumer = new DesktopConsumer(smugmugServiceDescription, smugmugTokenManager);
+                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
                     HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.GetRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
 
                     var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, smugmugTokenManager.AccessToken);
+                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
                 }
                 else
@@ -145,15 +148,15 @@ namespace SmugMug.NET
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
                 {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
+                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
                 }
                 else if (LoginType == LoginType.OAuth)
                 {
-                    smugmugConsumer = new DesktopConsumer(smugmugServiceDescription, smugmugTokenManager);
+                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
                     HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.PostRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
 
                     var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, smugmugTokenManager.AccessToken);
+                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
                 }
                 else
@@ -214,11 +217,11 @@ namespace SmugMug.NET
 
                 if (LoginType == LoginType.OAuth)
                 {
-                    smugmugConsumer = new DesktopConsumer(smugmugServiceDescription, smugmugTokenManager);
+                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
                     HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.PostRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
 
                     var resourceEndpoint = new MessageReceivingEndpoint(SMUGMUG_API_v2_UploadEndpoint, resourceHttpMethod);
-                    var httpRequest = smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, smugmugTokenManager.AccessToken);
+                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
 
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
                 }
@@ -252,15 +255,15 @@ namespace SmugMug.NET
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
                 {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
+                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
                 }
                 else if (LoginType == LoginType.OAuth)
                 {
-                    smugmugConsumer = new DesktopConsumer(smugmugServiceDescription, smugmugTokenManager);
+                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
                     HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.PatchRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
 
                     var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, smugmugTokenManager.AccessToken);
+                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
                 }
                 else
@@ -291,15 +294,15 @@ namespace SmugMug.NET
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 if (LoginType == LoginType.Anonymous)
                 {
-                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
+                    endpoint = string.Format("{0}{2}APIKey={1}", endpoint, _smugmugTokenManager.ConsumerKey, endpoint.Contains('?') ? "&" : "?");
                 }
                 else if (LoginType == LoginType.OAuth)
                 {
-                    smugmugConsumer = new DesktopConsumer(smugmugServiceDescription, smugmugTokenManager);
+                    _smugmugConsumer = new DesktopConsumer(_smugmugServiceDescription, _smugmugTokenManager);
                     HttpDeliveryMethods resourceHttpMethod = HttpDeliveryMethods.DeleteRequest | HttpDeliveryMethods.AuthorizationHeaderRequest;
 
                     var resourceEndpoint = new MessageReceivingEndpoint(baseAddress + endpoint, resourceHttpMethod);
-                    var httpRequest = smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, smugmugTokenManager.AccessToken);
+                    var httpRequest = _smugmugConsumer.PrepareAuthorizedRequest(resourceEndpoint, _smugmugTokenManager.AccessToken);
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", httpRequest.Headers["Authorization"].Substring(6));
                 }
                 else
