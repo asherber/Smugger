@@ -8,10 +8,10 @@ namespace SmugMug.NET
 {
     public class OAuthCredentials
     {
-        public string ConsumerKey;
-        public string ConsumerSecret;
-        public string AccessToken;
-        public string AccessTokenSecret;
+        public string ConsumerKey { get; set; }
+        public string ConsumerSecret { get; set; }
+        public string AccessToken { get; set; }
+        public string AccessTokenSecret { get; set; }
 
         public OAuthCredentials(string consumerKey)
         {

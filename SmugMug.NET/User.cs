@@ -5,26 +5,26 @@ namespace SmugMug.NET
 {
     public class User : SmugMugObject
     {
-        public AccountStatus AccountStatus;
-        public string Domain;
-        public string DomainOnly;
-        public string FirstName;
-        public bool FriendsView;
-        public int ImageCount;
-        public bool IsTrial;
-        public string LastName;
-        public string Name;
-        public string NickName;
-        public string Plan;
-        public bool QuickShare;
-        public string RefTag;
-        public UserSortMethod SortBy;
-        public string TotalAccountSize;
-        public string TotalUploadedSize;
-        public string ViewPassHint;
-        public string ViewPassword;
-        public Uri WebUri;
-        public UserUris Uris;
+        public AccountStatus AccountStatus { get; set; }
+        public string Domain { get; set; }
+        public string DomainOnly { get; set; }
+        public string FirstName { get; set; }
+        public bool FriendsView { get; set; }
+        public int ImageCount { get; set; }
+        public bool IsTrial { get; set; }
+        public string LastName { get; set; }
+        public string Name { get; set; }
+        public string NickName { get; set; }
+        public string Plan { get; set; }
+        public bool QuickShare { get; set; }
+        public string RefTag { get; set; }
+        public UserSortMethod SortBy { get; set; }
+        public string TotalAccountSize { get; set; }
+        public string TotalUploadedSize { get; set; }
+        public string ViewPassHint { get; set; }
+        public string ViewPassword { get; set; }
+        public Uri WebUri { get; set; }
+        public UserUris Uris { get; set; }
 
         public override string ToString()
         {
@@ -34,46 +34,46 @@ namespace SmugMug.NET
 
     public class UserUris
     {
-        public SmugMugUri BioImage;
-        public SmugMugUri CoverImage;
-        public SmugMugUri DuplicateImageSearch;
-        public SmugMugUri Features;
-        public SmugMugUri Folder;
-        public SmugMugUri Node;
-        public SmugMugUri SortUserFeaturedAlbums;
-        public SmugMugUri UnlockUser;
-        public SmugMugUri UrlPathLookup;
-        public SmugMugUri UserAlbumTemplates;
-        public SmugMugUri UserAlbums;
-        public SmugMugUri UserContacts;
-        public SmugMugUri UserDeletedAlbums;
-        public SmugMugUri UserDeletedFolders;
-        public SmugMugUri UserDeletedPages;
-        public SmugMugUri UserFeaturedAlbums;
-        public SmugMugUri UserGeoMedia;
-        public SmugMugUri UserGrants;
-        public SmugMugUri UserGuideSates;
-        public SmugMugUri UserHideGuides;
-        public SmugMugUri UserImageSearch;
-        public SmugMugUri UserLatestQuickNews;
-        public SmugMugUri UserPopularMedia;
-        public SmugMugUri UserProfile;
-        public SmugMugUri UserRecentImages;
-        public SmugMugUri UserTasks;
-        public SmugMugUri UserTopKeywords;
-        public SmugMugUri UserUploadLimits;
-        public SmugMugUri UserWatermarks;
+        public SmugMugUri BioImage { get; set; }
+        public SmugMugUri CoverImage { get; set; }
+        public SmugMugUri DuplicateImageSearch { get; set; }
+        public SmugMugUri Features { get; set; }
+        public SmugMugUri Folder { get; set; }
+        public SmugMugUri Node { get; set; }
+        public SmugMugUri SortUserFeaturedAlbums { get; set; }
+        public SmugMugUri UnlockUser { get; set; }
+        public SmugMugUri UrlPathLookup { get; set; }
+        public SmugMugUri UserAlbumTemplates { get; set; }
+        public SmugMugUri UserAlbums { get; set; }
+        public SmugMugUri UserContacts { get; set; }
+        public SmugMugUri UserDeletedAlbums { get; set; }
+        public SmugMugUri UserDeletedFolders { get; set; }
+        public SmugMugUri UserDeletedPages { get; set; }
+        public SmugMugUri UserFeaturedAlbums { get; set; }
+        public SmugMugUri UserGeoMedia { get; set; }
+        public SmugMugUri UserGrants { get; set; }
+        public SmugMugUri UserGuideSates { get; set; }
+        public SmugMugUri UserHideGuides { get; set; }
+        public SmugMugUri UserImageSearch { get; set; }
+        public SmugMugUri UserLatestQuickNews { get; set; }
+        public SmugMugUri UserPopularMedia { get; set; }
+        public SmugMugUri UserProfile { get; set; }
+        public SmugMugUri UserRecentImages { get; set; }
+        public SmugMugUri UserTasks { get; set; }
+        public SmugMugUri UserTopKeywords { get; set; }
+        public SmugMugUri UserUploadLimits { get; set; }
+        public SmugMugUri UserWatermarks { get; set; }
     }
 
     public class UserGetResponse : SmugMugUri
     {
-        public string DocUri;
-        public User User;
+        public string DocUri { get; set; }
+        public User User { get; set; }
     }
 
     public class UserPostResponse : SmugMugUri
     {
-        public User User;
+        public User User { get; set; }
 
         public override string ToString()
         {

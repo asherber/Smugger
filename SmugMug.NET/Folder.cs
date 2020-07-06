@@ -5,26 +5,26 @@ namespace SmugMug.NET
 {
     public class Folder : SmugMugObject
     {
-        public DateTime DateAdded;
-        public DateTime DateModified;
-        public string Description;
-        public string HighlightImageUri;
-        public bool IsEmpty;
-        public string Keywords;
-        public string Name;
-        public string NodeID;
-        public string Password;
-        public string PasswordHint;
-        public PrivacyType Privacy;
-        public SecurityType SecurityType;
-        public SmugSearchable SmugSearchable;
-        public SortDirection SortDirection;
-        public SortMethod SortMethod;
-        public string UrlName;
-        public string UrlPath;
-        public WorldSearchable WorldSearchable;
-        public Uri WebUri;
-        public FolderUris Uris;
+        public DateTime DateAdded { get; set; }
+        public DateTime DateModified { get; set; }
+        public string Description { get; set; }
+        public string HighlightImageUri { get; set; }
+        public bool IsEmpty { get; set; }
+        public string Keywords { get; set; }
+        public string Name { get; set; }
+        public string NodeID { get; set; }
+        public string Password { get; set; }
+        public string PasswordHint { get; set; }
+        public PrivacyType Privacy { get; set; }
+        public SecurityType SecurityType { get; set; }
+        public SmugSearchable SmugSearchable { get; set; }
+        public SortDirection SortDirection { get; set; }
+        public SortMethod SortMethod { get; set; }
+        public string UrlName { get; set; }
+        public string UrlPath { get; set; }
+        public WorldSearchable WorldSearchable { get; set; }
+        public Uri WebUri { get; set; }
+        public FolderUris Uris { get; set; }
 
         public override string ToString()
         {
@@ -34,30 +34,30 @@ namespace SmugMug.NET
 
     public class FolderUris
     {
-        public SmugMugUri AlbumList;
-        public SmugMugUri FolderAlbums;
-        public SmugMugUri FolderById;
-        public SmugMugUri FolderHighlightImage;
-        public SmugMugUri FolderList;
-        public SmugMugUri FolderPages;
-        public SmugMugUri Folders;
-        public SmugMugUri HighlightImage;
-        public SmugMugUri Node;
-        public SmugMugUri ParentFolder;
-        public SmugMugUri ParentFolders;
-        public SmugMugUri Size;
-        public SmugMugUri User;
+        public SmugMugUri AlbumList { get; set; }
+        public SmugMugUri FolderAlbums { get; set; }
+        public SmugMugUri FolderById { get; set; }
+        public SmugMugUri FolderHighlightImage { get; set; }
+        public SmugMugUri FolderList { get; set; }
+        public SmugMugUri FolderPages { get; set; }
+        public SmugMugUri Folders { get; set; }
+        public SmugMugUri HighlightImage { get; set; }
+        public SmugMugUri Node { get; set; }
+        public SmugMugUri ParentFolder { get; set; }
+        public SmugMugUri ParentFolders { get; set; }
+        public SmugMugUri Size { get; set; }
+        public SmugMugUri User { get; set; }
     }
 
     public class FolderGetResponse : SmugMugUri
     {
-        public string DocUri;
-        public Folder Folder;
+        public string DocUri { get; set; }
+        public Folder Folder { get; set; }
     }
 
     public class FolderPostResponse : SmugMugUri
     {
-        public Folder Folder;
+        public Folder Folder { get; set; }
 
         public override string ToString()
         {
@@ -67,7 +67,7 @@ namespace SmugMug.NET
 
     public class POSTParameter
     {
-        public string ParameterName { get; set; }
-        public string Problem { get; set; }
+        public string ParameterName  { get; set; }
+        public string Problem  { get; set; }
     }
 }

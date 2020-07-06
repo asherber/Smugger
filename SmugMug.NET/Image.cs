@@ -45,42 +45,42 @@ namespace SmugMug.NET
 
     public class ImageUris
     {
-        public SmugMugUri ImageAlbum;
-        public SmugMugUri ImageComments;
-        public SmugMugUri ImageDownload;
-        public SmugMugUri ImageMetadata;
-        public SmugMugUri ImageOwner;
-        public SmugMugUri ImagePrices;
-        public SmugMugUri ImageSizeDetails;
-        public SmugMugUri ImageSizes;
-        public SmugMugUri LargestImage;
-        public SmugMugUri CSMILVideo;
-        public SmugMugUri EmbedVideo;
-        public SmugMugUri Regions;
-        public SmugMugUri PointOfInterestCrops;
-        public SmugMugUri PointOfInterest;
-        public SmugMugUri LargestVideo;
+        public SmugMugUri ImageAlbum { get; set; }
+        public SmugMugUri ImageComments { get; set; }
+        public SmugMugUri ImageDownload { get; set; }
+        public SmugMugUri ImageMetadata { get; set; }
+        public SmugMugUri ImageOwner { get; set; }
+        public SmugMugUri ImagePrices { get; set; }
+        public SmugMugUri ImageSizeDetails { get; set; }
+        public SmugMugUri ImageSizes { get; set; }
+        public SmugMugUri LargestImage { get; set; }
+        public SmugMugUri CSMILVideo { get; set; }
+        public SmugMugUri EmbedVideo { get; set; }
+        public SmugMugUri Regions { get; set; }
+        public SmugMugUri PointOfInterestCrops { get; set; }
+        public SmugMugUri PointOfInterest { get; set; }
+        public SmugMugUri LargestVideo { get; set; }
     }
 
     public class ImageGetResponse : SmugMugUri
     {
-        public string DocUri;
-        public Image Image;
+        public string DocUri { get; set; }
+        public Image Image { get; set; }
     }
 
     public class ImageUpload
     {
-        public string StatusImageReplaceUri;
-        public string ImageUri;
-        public string AlbumImageUri;
-        public string URL;
+        public string StatusImageReplaceUri { get; set; }
+        public string ImageUri { get; set; }
+        public string AlbumImageUri { get; set; }
+        public string URL { get; set; }
     }
 
     public class ImagePostResponse 
     {
-        public string Stat;
-        public string Method;
-        public ImageUpload Image;
+        public string Stat { get; set; }
+        public string Method { get; set; }
+        public ImageUpload Image { get; set; }
 
         public override string ToString()
         {
@@ -90,7 +90,7 @@ namespace SmugMug.NET
 
     public class ImagePatchResponse : SmugMugUri
     {
-        public Image Image;
+        public Image Image { get; set; }
 
         public override string ToString()
         {
@@ -100,53 +100,53 @@ namespace SmugMug.NET
 
     public class ImageSizesGetResponse : SmugMugUri
     {
-        public ImageSizes ImageSizes;
+        public ImageSizes ImageSizes { get; set; }
     }
 
     public class ImageSizes
     {
         [JsonProperty("110VideoUrl")]
-        public string VideoUrl110;
+        public string VideoUrl110 { get; set; }
 
         [JsonProperty("1280VideoUrl")]
-        public string VideoUrl1280;
+        public string VideoUrl1280 { get; set; }
 
         [JsonProperty("1920VideoUrl")]
-        public string VideoUrl1920;
+        public string VideoUrl1920 { get; set; }
 
         [JsonProperty("200VideoUrl")]
-        public string VideoUrl200;
+        public string VideoUrl200 { get; set; }
 
         [JsonProperty("320VideoUrl")]
-        public string VideoUrl320;
+        public string VideoUrl320 { get; set; }
 
         [JsonProperty("4KImageUrl")]
-        public string ImageUrl4k;
+        public string ImageUrl4k { get; set; }
 
         [JsonProperty("5KImageUrl")]
-        public string ImageUrl5k;
+        public string ImageUrl5k { get; set; }
 
         [JsonProperty("640VideoUrl")]
-        public string VideoUrl640;
+        public string VideoUrl640 { get; set; }
 
         [JsonProperty("960VideoUrl")]
-        public string VideoUrl960;
+        public string VideoUrl960 { get; set; }
 
-        public string LargeImageUrl;
+        public string LargeImageUrl { get; set; }
 
-        public string LargestImageUrl;
-        public string LargestVideoUrl;
-        public string MediumImageUrl;
-        public string OriginalImageUrl;
-        public string SMILVideoUrl;
-        public string SmallImageUrl;
-        public string ThumbImageUrl;
-        public string TinyImageUrl;
-        public string X2LargeImageUrl;
-        public string X3LargeImageUrl;
-        public string X4LargeImageUrl;
-        public string X5LargeImageUrl;
-        public string XLargeImageUrl;
+        public string LargestImageUrl { get; set; }
+        public string LargestVideoUrl { get; set; }
+        public string MediumImageUrl { get; set; }
+        public string OriginalImageUrl { get; set; }
+        public string SMILVideoUrl { get; set; }
+        public string SmallImageUrl { get; set; }
+        public string ThumbImageUrl { get; set; }
+        public string TinyImageUrl { get; set; }
+        public string X2LargeImageUrl { get; set; }
+        public string X3LargeImageUrl { get; set; }
+        public string X4LargeImageUrl { get; set; }
+        public string X5LargeImageUrl { get; set; }
+        public string XLargeImageUrl { get; set; }
     }
 
 }
