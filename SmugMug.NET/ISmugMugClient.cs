@@ -8,62 +8,62 @@ namespace SmugMug.NET
 {
     public interface ISmugMugClient
     {
-        Task<Album> GetAlbum(string albumId);
-        Task<List<Album>> GetAlbums(User user, int maxAlbumCount = int.MaxValue);
-        Task<List<Album>> GetFeaturedAlbums(User user, int maxAlbumCount = int.MaxValue);
+        Task<Album> GetAlbumAsync(string albumId);
+        Task<List<Album>> GetAlbumsAsync(User user, int maxAlbumCount = int.MaxValue);
+        Task<List<Album>> GetFeaturedAlbumsAsync(User user, int maxAlbumCount = int.MaxValue);
 
-        Task<Album> CreateAlbum(string albumTitle, string userNickName, string folderPath, Dictionary<string, string> arguments = null);
-        Task<Album> CreateAlbum(string albumTitle, User user, string folderPath, Dictionary<string, string> arguments = null);
-        Task<Album> CreateAlbum(string albumTitle, Folder folder, Dictionary<string, string> arguments = null);
+        Task<Album> CreateAlbumAsync(string albumTitle, string userNickName, string folderPath, Dictionary<string, string> arguments = null);
+        Task<Album> CreateAlbumAsync(string albumTitle, User user, string folderPath, Dictionary<string, string> arguments = null);
+        Task<Album> CreateAlbumAsync(string albumTitle, Folder folder, Dictionary<string, string> arguments = null);
 
-        Task<Album> UpdateAlbum(Album album, Dictionary<string, string> arguments);
+        Task<Album> UpdateAlbumAsync(Album album, Dictionary<string, string> arguments);
 
-        Task DeleteAlbum(Album album);
+        Task DeleteAlbumAsync(Album album);
 
-        Task<User> GetUser(string userNickName);
-        Task<User> GetAuthenticatedUser();
-        Task<User> GetSiteUser();
+        Task<User> GetUserAsync(string userNickName);
+        Task<User> GetAuthenticatedUserAsync();
+        Task<User> GetSiteUserAsync();
         
-        Task<UserProfile> GetUserProfile(string userNickName);
-        Task<UserProfile> GetUserProfile(User user);
+        Task<UserProfile> GetUserProfileAsync(string userNickName);
+        Task<UserProfile> GetUserProfileAsync(User user);
 
-        Task<UserProfile> UpdateUserProfile(UserProfile userProfile, Dictionary<string, string> updates);
-        Task<UserProfile> UpdateUserProfile(User user, Dictionary<string, string> updates);
+        Task<UserProfile> UpdateUserProfileAsync(UserProfile userProfile, Dictionary<string, string> updates);
+        Task<UserProfile> UpdateUserProfileAsync(User user, Dictionary<string, string> updates);
 
-        Task<Image> GetImage(string imageKey);
-        Task<Image> GetImage(ImageUpload imageUpload);
+        Task<Image> GetImageAsync(string imageKey);
+        Task<Image> GetImageAsync(ImageUpload imageUpload);
         String GetImageKey(ImageUpload imageUpload);
-        Task<ImageUpload> UploadImage(string albumUri, string filePath);
-        Task<ImageUpload> UploadImage(Node node, string filePath);
-        Task<ImageUpload> UploadImage(Album album, string filePath);
-        Task<Image> UpdateImage(Image image, Dictionary<string, string> arguments);
-        Task DeleteImage(Image image);
+        Task<ImageUpload> UploadImageAsync(string albumUri, string filePath);
+        Task<ImageUpload> UploadImageAsync(Node node, string filePath);
+        Task<ImageUpload> UploadImageAsync(Album album, string filePath);
+        Task<Image> UpdateImageAsync(Image image, Dictionary<string, string> arguments);
+        Task DeleteImageAsync(Image image);
 
-        Task<AlbumImage> GetAlbumImage(Album album, string imageKey);
-        Task<AlbumImagesWithSizes> GetAlbumImagesWithSizes(Album album, int maxAlbumImageCount = int.MaxValue);
-        Task<List<AlbumImage>> GetAlbumImages(Album album, int maxAlbumImageCount = int.MaxValue);
+        Task<AlbumImage> GetAlbumImageAsync(Album album, string imageKey);
+        Task<AlbumImagesWithSizes> GetAlbumImagesWithSizesAsync(Album album, int maxAlbumImageCount = int.MaxValue);
+        Task<List<AlbumImage>> GetAlbumImagesAsync(Album album, int maxAlbumImageCount = int.MaxValue);
 
-        Task<Node> GetNode(string nodeId);
-        Task<Node> GetRootNode(User user);
-        Task<List<Node>> GetChildNodes(Node node, int maxNodeCount = int.MaxValue);
+        Task<Node> GetNodeAsync(string nodeId);
+        Task<Node> GetRootNodeAsync(User user);
+        Task<List<Node>> GetChildNodesAsync(Node node, int maxNodeCount = int.MaxValue);
 
-        String GetDefaultNodeID(User user);
+        String GetDefaultNodeIDAsync(User user);
 
-        Task<Node> CreateNode(NodeType type, string nodeName, string folderNodeId, Dictionary<string, string> arguments = null);
+        Task<Node> CreateNodeAsync(NodeType type, string nodeName, string folderNodeId, Dictionary<string, string> arguments = null);
 
-        Task<Node> UpdateNode(Node node, Dictionary<string, string> updates);
+        Task<Node> UpdateNodeAsync(Node node, Dictionary<string, string> updates);
 
-        Task DeleteNode(Node node);
+        Task DeleteNodeAsync(Node node);
 
-        Task<Folder> GetFolder(string userNickName, string folderPath);
-        Task<Folder> GetFolder(User user, string folderPath);
+        Task<Folder> GetFolderAsync(string userNickName, string folderPath);
+        Task<Folder> GetFolderAsync(User user, string folderPath);
 
-        Task<Folder> CreateFolder(string folderName, string userNickName, string folderPath, Dictionary<string, string> arguments = null);
-        Task<Folder> CreateFolder(string folderName, User user, string folderPath, Dictionary<string, string> arguments = null);
-        Task<Folder> CreateFolder(string folderName, Folder folder, Dictionary<string, string> arguments = null);
+        Task<Folder> CreateFolderAsync(string folderName, string userNickName, string folderPath, Dictionary<string, string> arguments = null);
+        Task<Folder> CreateFolderAsync(string folderName, User user, string folderPath, Dictionary<string, string> arguments = null);
+        Task<Folder> CreateFolderAsync(string folderName, Folder folder, Dictionary<string, string> arguments = null);
 
-        Task<Folder> UpdateFolder(Folder folder, Dictionary<string, string> arguments);
+        Task<Folder> UpdateFolderAsync(Folder folder, Dictionary<string, string> arguments);
 
-        Task DeleteFolder(Folder folder);   
+        Task DeleteFolderAsync(Folder folder);   
     }
 }

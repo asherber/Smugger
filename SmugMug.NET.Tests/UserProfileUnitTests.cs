@@ -24,23 +24,23 @@ namespace SmugMug.NET.Tests
             User nullUser = null;
             User validUser = new User() { Name = "Valid User", NickName = "ValidUser" };
 
-            mock.Setup(api => api.GetUser("ValidUser")).ReturnsAsync(validUser);
-            mock.Setup(api => api.GetUser("InvalidUser")).ReturnsAsync(nullUser);
+            mock.Setup(api => api.GetUserAsync("ValidUser")).ReturnsAsync(validUser);
+            mock.Setup(api => api.GetUserAsync("InvalidUser")).ReturnsAsync(nullUser);
 
-            mock.Setup(api => api.GetUserProfile("ValidUser")).ReturnsAsync(validUserProfile);
-            mock.Setup(api => api.GetUserProfile("InvalidUser")).ReturnsAsync(nullUserProfile);
+            mock.Setup(api => api.GetUserProfileAsync("ValidUser")).ReturnsAsync(validUserProfile);
+            mock.Setup(api => api.GetUserProfileAsync("InvalidUser")).ReturnsAsync(nullUserProfile);
 
-            mock.Setup(api => api.GetUserProfile(validUser)).ReturnsAsync(validUserProfile);
-            mock.Setup(api => api.GetUserProfile(nullUser)).ReturnsAsync(nullUserProfile);
+            mock.Setup(api => api.GetUserProfileAsync(validUser)).ReturnsAsync(validUserProfile);
+            mock.Setup(api => api.GetUserProfileAsync(nullUser)).ReturnsAsync(nullUserProfile);
 
-            mock.Setup(api => api.UpdateUserProfile(validUser, It.Is<Dictionary<string, string>>(i => i.ContainsKey("BioText")))).ReturnsAsync(updatedUserProfile);
-            mock.Setup(api => api.UpdateUserProfile(validUser, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Invalid")))).Throws<HttpRequestException>();
+            mock.Setup(api => api.UpdateUserProfileAsync(validUser, It.Is<Dictionary<string, string>>(i => i.ContainsKey("BioText")))).ReturnsAsync(updatedUserProfile);
+            mock.Setup(api => api.UpdateUserProfileAsync(validUser, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Invalid")))).Throws<HttpRequestException>();
 
-            mock.Setup(api => api.UpdateUserProfile(validUserProfile, It.Is<Dictionary<string, string>>(i => i.ContainsKey("BioText")))).ReturnsAsync(updatedUserProfile);
-            mock.Setup(api => api.UpdateUserProfile(validUserProfile, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Invalid")))).Throws<HttpRequestException>();
+            mock.Setup(api => api.UpdateUserProfileAsync(validUserProfile, It.Is<Dictionary<string, string>>(i => i.ContainsKey("BioText")))).ReturnsAsync(updatedUserProfile);
+            mock.Setup(api => api.UpdateUserProfileAsync(validUserProfile, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Invalid")))).Throws<HttpRequestException>();
 
-            mock.Setup(api => api.UpdateUserProfile((User)null, It.IsAny<Dictionary<string, string>>())).Throws<ArgumentNullException>();
-            mock.Setup(api => api.UpdateUserProfile(validUser, null)).Throws<ArgumentNullException>();
+            mock.Setup(api => api.UpdateUserProfileAsync((User)null, It.IsAny<Dictionary<string, string>>())).Throws<ArgumentNullException>();
+            mock.Setup(api => api.UpdateUserProfileAsync(validUser, null)).Throws<ArgumentNullException>();
 
             api = mock.Object;
         }
@@ -48,7 +48,7 @@ namespace SmugMug.NET.Tests
         [TestMethod]
         public async Task GetUserProfile_ByName()
         {
-            UserProfile userProfile = await api.GetUserProfile("ValidUser");
+            UserProfile userProfile = await api.GetUserProfileAsync("ValidUser");
             Assert.IsNotNull(userProfile);
             Assert.AreEqual("Valid bio", userProfile.BioText);
             Assert.AreEqual("Valid User", userProfile.DisplayName);
@@ -57,15 +57,15 @@ namespace SmugMug.NET.Tests
         [TestMethod]
         public async Task GetUserProfile_ByName_Invalid()
         {
-            UserProfile userProfile = await api.GetUserProfile("InvalidUser");
+            UserProfile userProfile = await api.GetUserProfileAsync("InvalidUser");
             Assert.IsNull(userProfile);
         }
 
         [TestMethod]
         public async Task GetUserProfile_ByUser()
         {
-            User user = await api.GetUser("ValidUser");
-            UserProfile userProfile = await api.GetUserProfile(user);
+            User user = await api.GetUserAsync("ValidUser");
+            UserProfile userProfile = await api.GetUserProfileAsync(user);
             Assert.IsNotNull(userProfile);
             Assert.AreEqual("Valid bio", userProfile.BioText);
             Assert.AreEqual("Valid User", userProfile.DisplayName);
@@ -74,18 +74,18 @@ namespace SmugMug.NET.Tests
         [TestMethod]
         public async Task GetUserProfile_ByUser_Invalid()
         {
-            User user = await api.GetUser("InvalidUser");
-            UserProfile userProfile = await api.GetUserProfile(user);
+            User user = await api.GetUserAsync("InvalidUser");
+            UserProfile userProfile = await api.GetUserProfileAsync(user);
             Assert.IsNull(userProfile);
         }
 
         [TestMethod]
         public async Task UpdateUserProfile()
         {
-            User user = await api.GetUser("ValidUser");
-            UserProfile userProfile = await api.GetUserProfile(user);
+            User user = await api.GetUserAsync("ValidUser");
+            UserProfile userProfile = await api.GetUserProfileAsync(user);
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "BioText", "Updated bio" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfile(userProfile, updates);
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(userProfile, updates);
             Assert.IsNotNull(updatedUserProfile);
             Assert.AreEqual("Updated bio", updatedUserProfile.BioText);
             Assert.AreEqual("Valid User", updatedUserProfile.DisplayName);
@@ -94,9 +94,9 @@ namespace SmugMug.NET.Tests
         [TestMethod]
         public async Task UpdateUserProfile_ByUser()
         {
-            User user = await api.GetUser("ValidUser");
+            User user = await api.GetUserAsync("ValidUser");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "BioText", "Updated bio" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfile(user, updates);
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, updates);
             Assert.IsNotNull(updatedUserProfile);
             Assert.AreEqual("Updated bio", updatedUserProfile.BioText);
             Assert.AreEqual("Valid User", updatedUserProfile.DisplayName);
@@ -107,43 +107,43 @@ namespace SmugMug.NET.Tests
         public async Task UpdateUserProfile_InvalidUser()
         {
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfile((User)null, updates);
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync((User)null, updates);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task UpdateUserProfile_InvalidArguments()
         {
-            User user = await api.GetUser("InvalidUser");
-            UserProfile updatedUserProfile = await api.UpdateUserProfile(user, null);
+            User user = await api.GetUserAsync("InvalidUser");
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public async Task UpdateUserProfile_InvalidUser_ByUser()
         {
-            User user = await api.GetUser("InvalidUser");
+            User user = await api.GetUserAsync("InvalidUser");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfile(user, updates);
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, updates);
         }
 
         [TestMethod]
         [ExpectedException(typeof(HttpRequestException))]
         public async Task UpdateUserProfile_Invalid()
         {
-            User user = await api.GetUser("ValidUser");
-            UserProfile userProfile = await api.GetUserProfile(user);
+            User user = await api.GetUserAsync("ValidUser");
+            UserProfile userProfile = await api.GetUserProfileAsync(user);
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfile(userProfile, updates);
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(userProfile, updates);
         }
 
         [TestMethod]
         [ExpectedException(typeof(HttpRequestException))]
         public async Task UpdateUserProfile_Invalid_ByUser()
         {
-            User user = await api.GetUser("ValidUser");
+            User user = await api.GetUserAsync("ValidUser");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            UserProfile updatedUserProfile = await api.UpdateUserProfile(user, updates);
+            UserProfile updatedUserProfile = await api.UpdateUserProfileAsync(user, updates);
         }
     }
 }

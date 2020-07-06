@@ -31,7 +31,7 @@ namespace SmugMug.NET
         const string SMUGMUG_API_v2_ApiEndpoint = "https://api.smugmug.com/api/v2/";
         const string SMUGMUG_API_v2_UploadEndpoint = "https://upload.smugmug.com/";
 
-        public LoginType LoginType;
+        public LoginType LoginType { get; private set; }
 
         public SmugMugClient(string apiKey) : this(LoginType.Anonymous, new OAuthCredentials(apiKey))
         {
@@ -55,12 +55,12 @@ namespace SmugMug.NET
         }
 
         #region REST Requests
-        private async Task<T> GetRequest<T>(string endpoint)
+        private async Task<T> GetRequestAsync<T>(string endpoint)
         {
-            return await GetRequest<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint);
+            return await GetRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
-        private async Task<T> GetRequest<T>(string baseAddress, string endpoint)
+        private async Task<T> GetRequestAsync<T>(string baseAddress, string endpoint)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -87,18 +87,18 @@ namespace SmugMug.NET
                 HttpResponseMessage httpResponse = client.GetAsync(endpoint).Result;
                 System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
                 httpResponse.EnsureSuccessStatusCode();
-                GetResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseStub<T>>();
+                GetResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseStub<T>>().ConfigureAwait(false);
                 System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
 
                 return contentResponse.Response;
             }
         }
 
-        private async Task<Tuple<T, Dictionary<string,TE>>> GetRequestWithExpansions<T, TE>(string endpoint)
+        private async Task<Tuple<T, Dictionary<string,TE>>> GetRequestWithExpansionsAsync<T, TE>(string endpoint)
         {
-            return await GetRequestWithExpansions<T, TE>(SMUGMUG_API_v2_BaseEndpoint, endpoint);
+            return await GetRequestWithExpansionsAsync<T, TE>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
-        private async Task<Tuple<T, Dictionary<string, TE>>> GetRequestWithExpansions<T, TE>(string baseAddress, string endpoint)
+        private async Task<Tuple<T, Dictionary<string, TE>>> GetRequestWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -125,19 +125,19 @@ namespace SmugMug.NET
                 HttpResponseMessage httpResponse = client.GetAsync(endpoint).Result;
                 System.Diagnostics.Trace.WriteLine(string.Format("GET {0}", httpResponse.RequestMessage.RequestUri));
                 httpResponse.EnsureSuccessStatusCode();
-                GetResponseWithExpansionStub<T,TE> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseWithExpansionStub<T,TE>>();
+                GetResponseWithExpansionStub<T,TE> contentResponse = await httpResponse.Content.ReadAsAsync<GetResponseWithExpansionStub<T,TE>>().ConfigureAwait(false);
                 System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", contentResponse.Code, contentResponse.Message));
 
                 return new Tuple<T, Dictionary<string, TE>>(contentResponse.Response, contentResponse.Expansions);
             }
         }
 
-        private async Task<T> PostRequest<T>(string endpoint, string jsonContent)
+        private async Task<T> PostRequestAsync<T>(string endpoint, string jsonContent)
         {
-            return await PostRequest<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent);
+            return await PostRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
         }
 
-        private async Task<T> PostRequest<T>(string baseAddress, string endpoint, string jsonContent)
+        private async Task<T> PostRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -167,7 +167,7 @@ namespace SmugMug.NET
                 PostResponseStub<T> contentResponse = null;
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>();
+                    contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
                 }
                 else
                 {
@@ -201,7 +201,7 @@ namespace SmugMug.NET
             }
         }
 
-        private async Task<ImageUpload> UploadImage(string albumUri, string fileName, byte[] image, CancellationToken cancellationToken)
+        private async Task<ImageUpload> UploadImageAsync(string albumUri, string fileName, byte[] image, CancellationToken cancellationToken)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -232,19 +232,19 @@ namespace SmugMug.NET
                 HttpResponseMessage httpResponse = client.PostAsync(SMUGMUG_API_v2_UploadEndpoint, content, cancellationToken).Result;
                 System.Diagnostics.Trace.WriteLine(string.Format("POST {0}", httpResponse.RequestMessage.RequestUri));
                 httpResponse.EnsureSuccessStatusCode();
-                ImagePostResponse contentResponse = await httpResponse.Content.ReadAsAsync<ImagePostResponse>();
+                ImagePostResponse contentResponse = await httpResponse.Content.ReadAsAsync<ImagePostResponse>().ConfigureAwait(false);
                 System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Stat, contentResponse.Method, contentResponse.Image));
 
                 return contentResponse.Image;
             }
         }
 
-        private async Task<T> PatchRequest<T>(string endpoint, string jsonContent)
+        private async Task<T> PatchRequestAsync<T>(string endpoint, string jsonContent)
         {
-            return await PatchRequest<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent);
+            return await PatchRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
         }
 
-        private async Task<T> PatchRequest<T>(string baseAddress, string endpoint, string jsonContent)
+        private async Task<T> PatchRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -271,19 +271,19 @@ namespace SmugMug.NET
                 HttpResponseMessage httpResponse = client.PatchAsync(endpoint, new StringContent(jsonContent)).Result;
                 System.Diagnostics.Trace.WriteLine(string.Format("PATCH {0}: {1}", httpResponse.RequestMessage.RequestUri, jsonContent));
                 httpResponse.EnsureSuccessStatusCode();
-                PostResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>();
+                PostResponseStub<T> contentResponse = await httpResponse.Content.ReadAsAsync<PostResponseStub<T>>().ConfigureAwait(false);
                 System.Diagnostics.Trace.WriteLine(string.Format("---{0} {1}: {2}", contentResponse.Code, contentResponse.Message, contentResponse.Response));
 
                 return contentResponse.Response;
             }
         }
 
-        private async Task DeleteRequest(string endpoint)
+        private async Task DeleteRequestAsync(string endpoint)
         {
-            await DeleteRequest(SMUGMUG_API_v2_BaseEndpoint, endpoint);
+            await DeleteRequestAsync(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
-        private async Task DeleteRequest(string baseAddress, string endpoint)
+        private async Task DeleteRequestAsync(string baseAddress, string endpoint)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -310,7 +310,7 @@ namespace SmugMug.NET
                 HttpResponseMessage httpResponse = client.DeleteAsync(endpoint).Result;
                 System.Diagnostics.Trace.WriteLine(string.Format("DELETE {0}", httpResponse.RequestMessage.RequestUri));
                 httpResponse.EnsureSuccessStatusCode();
-                DeleteResponseStub contentResponse = await httpResponse.Content.ReadAsAsync<DeleteResponseStub>();
+                DeleteResponseStub contentResponse = await httpResponse.Content.ReadAsAsync<DeleteResponseStub>().ConfigureAwait(false);
                 System.Diagnostics.Trace.WriteLine(string.Format("---{0}:{1}", httpResponse.StatusCode, httpResponse.ReasonPhrase));
             }
         }
@@ -353,42 +353,42 @@ namespace SmugMug.NET
         #endregion
 
         #region User
-        public async Task<User> GetUser(string userNickName)
+        public async Task<User> GetUserAsync(string userNickName)
         {
             string endpoint = string.Format("user/{0}", userNickName);
-            UserGetResponse response = await GetRequest<UserGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint);
+            UserGetResponse response = await GetRequestAsync<UserGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.User;
         }
 
-        public async Task<User> GetAuthenticatedUser()
+        public async Task<User> GetAuthenticatedUserAsync()
         {
             string endpoint = "/api/v2!authuser";
-            UserGetResponse response = await GetRequest<UserGetResponse>(endpoint);
+            UserGetResponse response = await GetRequestAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
 
-        public async Task<User> GetSiteUser()
+        public async Task<User> GetSiteUserAsync()
         {
             string endpoint = "/api/v2!siteuser";
-            UserGetResponse response = await GetRequest<UserGetResponse>(endpoint);
+            UserGetResponse response = await GetRequestAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
         #endregion
 
         #region UserProfile
-        public async Task<UserProfile> GetUserProfile(string userNickName)
+        public async Task<UserProfile> GetUserProfileAsync(string userNickName)
         {
             string endpoint = string.Format("user/{0}!profile", userNickName);
-            UserProfileGetResponse response = await GetRequest<UserProfileGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint);
+            UserProfileGetResponse response = await GetRequestAsync<UserProfileGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.UserProfile;
         }
 
-        public async Task<UserProfile> GetUserProfile(User user)
+        public async Task<UserProfile> GetUserProfileAsync(User user)
         {
             if (user != null)
             {
                 string endpoint = user.Uris.UserProfile.Uri;
-                UserProfileGetResponse response = await GetRequest<UserProfileGetResponse>(endpoint);
+                UserProfileGetResponse response = await GetRequestAsync<UserProfileGetResponse>(endpoint).ConfigureAwait(false);
                 return response.UserProfile;
             }
             else
@@ -397,13 +397,13 @@ namespace SmugMug.NET
             }
         }
 
-        private async Task<UserProfile> UpdateUserProfile(string uri, Dictionary<string, string> updates)
+        private async Task<UserProfile> UpdateUserProfileAsync(string uri, Dictionary<string, string> updates)
         {
             if (updates != null && updates.Count > 0)
             {
                 string content = GenerateJson(updates);
                 string endpoint = uri;
-                var response = await PatchRequest<UserProfilePostResponse>(endpoint, content);
+                var response = await PatchRequestAsync<UserProfilePostResponse>(endpoint, content).ConfigureAwait(false);
                 return response.UserProfile;
             }
             else
@@ -412,14 +412,14 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<UserProfile> UpdateUserProfile(UserProfile userProfile, Dictionary<string, string> updates)
+        public async Task<UserProfile> UpdateUserProfileAsync(UserProfile userProfile, Dictionary<string, string> updates)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to update a user profile.");
 
             if (userProfile != null)
             {
-                return await UpdateUserProfile(userProfile.Uri, updates);
+                return await UpdateUserProfileAsync(userProfile.Uri, updates).ConfigureAwait(false);
             }
             else
             {
@@ -427,14 +427,14 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<UserProfile> UpdateUserProfile(User user, Dictionary<string, string> updates)
+        public async Task<UserProfile> UpdateUserProfileAsync(User user, Dictionary<string, string> updates)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to update a user profile.");
 
             if (user != null)
             {
-                return await UpdateUserProfile(user.Uris.UserProfile.Uri, updates);
+                return await UpdateUserProfileAsync(user.Uris.UserProfile.Uri, updates).ConfigureAwait(false);
             }
             else
             {
@@ -444,19 +444,19 @@ namespace SmugMug.NET
         #endregion
 
         #region Node
-        public async Task<Node> GetNode(string nodeId)
+        public async Task<Node> GetNodeAsync(string nodeId)
         {
             string endpoint = string.Format("node/{0}", nodeId);
-            NodeGetResponse response = await GetRequest<NodeGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint);
+            NodeGetResponse response = await GetRequestAsync<NodeGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Node;
         }
 
-        public async Task<Node> GetRootNode(User user)
+        public async Task<Node> GetRootNodeAsync(User user)
         {
             if (user != null)
             {
                 string endpoint = user.Uris.Node.Uri;
-                NodeGetResponse response = await GetRequest<NodeGetResponse>(endpoint);
+                NodeGetResponse response = await GetRequestAsync<NodeGetResponse>(endpoint).ConfigureAwait(false);
                 return response.Node;
             }
             else
@@ -465,7 +465,7 @@ namespace SmugMug.NET
             }
         }
 
-        public String GetDefaultNodeID(User user)
+        public String GetDefaultNodeIDAsync(User user)
         {
             if (user != null)
             {
@@ -478,14 +478,14 @@ namespace SmugMug.NET
             }
         }
 
-        private async Task<List<Node>> GetPagedNodes(string initialUri, int maxCount)
+        private async Task<List<Node>> GetPagedNodesAsync(string initialUri, int maxCount)
         {
             List<Node> results = new List<Node>();
             string nextPage = initialUri;
             NodePagesResponse nodePagesResponse;
             do
             {
-                nodePagesResponse = await GetRequest<NodePagesResponse>(nextPage);
+                nodePagesResponse = await GetRequestAsync<NodePagesResponse>(nextPage).ConfigureAwait(false);
                 results.AddRange(nodePagesResponse.Node);
 
                 if (nodePagesResponse.Pages != null)
@@ -503,20 +503,20 @@ namespace SmugMug.NET
             return results;
         }
 
-        public async Task<List<Node>> GetChildNodes(Node node, int maxNodeCount = int.MaxValue)
+        public async Task<List<Node>> GetChildNodesAsync(Node node, int maxNodeCount = int.MaxValue)
         {
             if (node.HasChildren)
-                return await GetPagedNodes(node.Uris.ChildNodes.Uri, maxNodeCount);
+                return await GetPagedNodesAsync(node.Uris.ChildNodes.Uri, maxNodeCount).ConfigureAwait(false);
             else
                 return null;
         }
 
-        public async Task<Node> CreateNode(NodeType nodeType, string nodeName, string folderNodeId, Dictionary<string, string> arguments = null)
+        public async Task<Node> CreateNodeAsync(NodeType nodeType, string nodeName, string folderNodeId, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create a node.");
 
-            Node parentNode = await GetNode(folderNodeId);
+            Node parentNode = await GetNodeAsync(folderNodeId).ConfigureAwait(false);
             if (parentNode != null)
             {
                 if (nodeName.Length > 32)
@@ -530,7 +530,7 @@ namespace SmugMug.NET
 
                 string content = GenerateNodeJson(nodeName, arguments);
                 string endpoint = parentNode.Uris.ChildNodes.Uri;
-                var response = await PostRequest<NodePostResponse>(endpoint, content);
+                var response = await PostRequestAsync<NodePostResponse>(endpoint, content).ConfigureAwait(false);
                 return response.Node;
             }
             else
@@ -539,7 +539,7 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<Node> UpdateNode(Node node, Dictionary<string, string> updates)
+        public async Task<Node> UpdateNodeAsync(Node node, Dictionary<string, string> updates)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to update a node.");
@@ -550,7 +550,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = node.Uri;
-                    var response = await PatchRequest<NodePostResponse>(endpoint, content);
+                    var response = await PatchRequestAsync<NodePostResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Node;
                 }
                 else
@@ -564,20 +564,20 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task DeleteNode(Node node)
+        public async Task DeleteNodeAsync(Node node)
         {
             if (node == null)
             {
                 throw new ArgumentNullException("node", "You must provide a valid node to delete.");
             }
 
-            await DeleteRequest(node.Uri);
+            await DeleteRequestAsync(node.Uri).ConfigureAwait(false);
         }
 
         #endregion
 
         #region Folder
-        public async Task<Folder> GetFolder(string userNickName, string folderPath)
+        public async Task<Folder> GetFolderAsync(string userNickName, string folderPath)
         {
             StringBuilder sb = new StringBuilder("folder/user/");
             sb.Append(userNickName);
@@ -586,11 +586,11 @@ namespace SmugMug.NET
                 sb.Append("/").Append(folderPath);
             }
             string endpoint = sb.ToString();
-            FolderGetResponse response = await GetRequest<FolderGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint);
+            FolderGetResponse response = await GetRequestAsync<FolderGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Folder;
         }
 
-        public async Task<Folder> GetFolder(User user, string folderPath)
+        public async Task<Folder> GetFolderAsync(User user, string folderPath)
         {
             if (user != null)
             {
@@ -600,7 +600,7 @@ namespace SmugMug.NET
                     sb.Append("/").Append(folderPath);
                 }
                 string endpoint = sb.ToString();
-                FolderGetResponse response = await GetRequest<FolderGetResponse>(endpoint);
+                FolderGetResponse response = await GetRequestAsync<FolderGetResponse>(endpoint).ConfigureAwait(false);
                 return response.Folder;
             }
             else
@@ -609,15 +609,15 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<Folder> CreateFolder(string folderName, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
+        public async Task<Folder> CreateFolderAsync(string folderName, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
 
-            Folder parentFolder = await GetFolder(userNickName, folderPath);
+            Folder parentFolder = await GetFolderAsync(userNickName, folderPath).ConfigureAwait(false);
             if (parentFolder != null)
             {
-                return await CreateFolder(folderName, parentFolder, arguments);
+                return await CreateFolderAsync(folderName, parentFolder, arguments).ConfigureAwait(false);
             }
             else
             {
@@ -625,15 +625,15 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<Folder> CreateFolder(string folderName, User user, string folderPath, Dictionary<string, string> arguments = null)
+        public async Task<Folder> CreateFolderAsync(string folderName, User user, string folderPath, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
 
-            Folder parentFolder = await GetFolder(user, folderPath);
+            Folder parentFolder = await GetFolderAsync(user, folderPath).ConfigureAwait(false);
             if (parentFolder != null)
             {
-                return await CreateFolder(folderName, parentFolder, arguments);
+                return await CreateFolderAsync(folderName, parentFolder, arguments).ConfigureAwait(false);
             }
             else
             {
@@ -641,7 +641,7 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<Folder> CreateFolder(string folderName, Folder folder, Dictionary<string, string> arguments = null)
+        public async Task<Folder> CreateFolderAsync(string folderName, Folder folder, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
@@ -651,11 +651,11 @@ namespace SmugMug.NET
 
             string content = GenerateNodeJson(folderName, arguments);
             string endpoint = folder.Uris.Folders.Uri;
-            var response = await PostRequest<FolderPostResponse>(endpoint, content);
+            var response = await PostRequestAsync<FolderPostResponse>(endpoint, content).ConfigureAwait(false);
             return response.Folder;
         }
 
-        public async Task<Folder> UpdateFolder(Folder folder, Dictionary<string, string> updates)
+        public async Task<Folder> UpdateFolderAsync(Folder folder, Dictionary<string, string> updates)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to update a folder.");
@@ -666,7 +666,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = folder.Uri;
-                    var response = await PatchRequest<FolderPostResponse>(endpoint, content);
+                    var response = await PatchRequestAsync<FolderPostResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Folder;
                 }
                 else
@@ -680,33 +680,33 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task DeleteFolder(Folder folder)
+        public async Task DeleteFolderAsync(Folder folder)
         {
             if (folder == null)
             {
                 throw new ArgumentNullException("folder", "You must provide a valid folder to delete.");
             }
 
-            await DeleteRequest(folder.Uri);
+            await DeleteRequestAsync(folder.Uri).ConfigureAwait(false);
         }
         #endregion
 
         #region Album
-        public async Task<Album> GetAlbum(string albumId)
+        public async Task<Album> GetAlbumAsync(string albumId)
         {
             string endpoint = string.Format("album/{0}", albumId);
-            AlbumGetResponse response = await GetRequest<AlbumGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint);
+            AlbumGetResponse response = await GetRequestAsync<AlbumGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Album;
         }
 
-        private async Task<List<Album>> GetPagedAlbums(string initialUri, int maxCount)
+        private async Task<List<Album>> GetPagedAlbumsAsync(string initialUri, int maxCount)
         {
             List<Album> results = new List<Album>();
             string nextPage = initialUri;
             AlbumPagesResponse albumPagesResponse;
             do
             {
-                albumPagesResponse = await GetRequest<AlbumPagesResponse>(nextPage);
+                albumPagesResponse = await GetRequestAsync<AlbumPagesResponse>(nextPage).ConfigureAwait(false);
                 if (albumPagesResponse.Album != null)
                 {
                     results.AddRange(albumPagesResponse.Album);
@@ -730,17 +730,17 @@ namespace SmugMug.NET
             return results;
         }
 
-        public async Task<List<Album>> GetAlbums(User user, int maxAlbumCount = int.MaxValue)
+        public async Task<List<Album>> GetAlbumsAsync(User user, int maxAlbumCount = int.MaxValue)
         {
-            return await GetPagedAlbums(user.Uris.UserAlbums.Uri, maxAlbumCount);
+            return await GetPagedAlbumsAsync(user.Uris.UserAlbums.Uri, maxAlbumCount).ConfigureAwait(false);
         }
 
-        public async Task<List<Album>> GetFeaturedAlbums(User user, int maxAlbumCount = int.MaxValue)
+        public async Task<List<Album>> GetFeaturedAlbumsAsync(User user, int maxAlbumCount = int.MaxValue)
         {
-            return await GetPagedAlbums(user.Uris.UserFeaturedAlbums.Uri, maxAlbumCount);
+            return await GetPagedAlbumsAsync(user.Uris.UserFeaturedAlbums.Uri, maxAlbumCount).ConfigureAwait(false);
         }
 
-        private async Task<AlbumImagesWithSizes> GetPagedAlbumImagesWithSizes(string initialUri, int maxCount)
+        private async Task<AlbumImagesWithSizes> GetPagedAlbumImagesWithSizesAsync(string initialUri, int maxCount)
         {
             var result = new AlbumImagesWithSizes();
             result.AlbumImages = new List<AlbumImage>();
@@ -752,7 +752,7 @@ namespace SmugMug.NET
             Tuple<AlbumImagePagesResponse, Dictionary<string, ImageSizesGetResponse>> response;
             do
             {
-                response = await GetRequestWithExpansions<AlbumImagePagesResponse, ImageSizesGetResponse>(nextPage);
+                response = await GetRequestWithExpansionsAsync<AlbumImagePagesResponse, ImageSizesGetResponse>(nextPage).ConfigureAwait(false);
                 result.AlbumImages.AddRange(response.Item1.AlbumImage);
                 result.ImageSizes = result.ImageSizes.Concat(response.Item2).GroupBy(d => d.Key).ToDictionary(d => d.Key, d => d.First().Value);
                 if (response.Item1.Pages != null)
@@ -774,19 +774,19 @@ namespace SmugMug.NET
             return result;
         }
 
-        public async Task<AlbumImagesWithSizes> GetAlbumImagesWithSizes(Album album, int maxAlbumImageCount = int.MaxValue)
+        public async Task<AlbumImagesWithSizes> GetAlbumImagesWithSizesAsync(Album album, int maxAlbumImageCount = int.MaxValue)
         {
-            return await GetPagedAlbumImagesWithSizes(album.Uris.AlbumImages.Uri, maxAlbumImageCount);
+            return await GetPagedAlbumImagesWithSizesAsync(album.Uris.AlbumImages.Uri, maxAlbumImageCount).ConfigureAwait(false);
         }
 
-        private async Task<List<AlbumImage>> GetPagedAlbumImages(string initialUri, int maxCount)
+        private async Task<List<AlbumImage>> GetPagedAlbumImagesAsync(string initialUri, int maxCount)
         {
             List<AlbumImage> results = new List<AlbumImage>();
             string nextPage = initialUri;
             AlbumImagePagesResponse albumImagePagesResponse;
             do
             {
-                albumImagePagesResponse = await GetRequest<AlbumImagePagesResponse>(nextPage);
+                albumImagePagesResponse = await GetRequestAsync<AlbumImagePagesResponse>(nextPage).ConfigureAwait(false);
                 results.AddRange(albumImagePagesResponse.AlbumImage);
 
                 if (albumImagePagesResponse.Pages != null)
@@ -804,29 +804,29 @@ namespace SmugMug.NET
             return results;
         }
 
-        public async Task<List<AlbumImage>> GetAlbumImages(Album album, int maxAlbumImageCount = int.MaxValue)
+        public async Task<List<AlbumImage>> GetAlbumImagesAsync(Album album, int maxAlbumImageCount = int.MaxValue)
         {
-            return await GetPagedAlbumImages(album.Uris.AlbumImages.Uri, maxAlbumImageCount);
+            return await GetPagedAlbumImagesAsync(album.Uris.AlbumImages.Uri, maxAlbumImageCount).ConfigureAwait(false);
         }
 
-        public async Task<Album> CreateAlbum(string albumTitle, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
+        public async Task<Album> CreateAlbumAsync(string albumTitle, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create a folder.");
 
-            User user = await GetUser(userNickName);
-            return await CreateAlbum(albumTitle, user, folderPath, arguments);
+            User user = await GetUserAsync(userNickName).ConfigureAwait(false);
+            return await CreateAlbumAsync(albumTitle, user, folderPath, arguments).ConfigureAwait(false);
         }
 
-        public async Task<Album> CreateAlbum(string albumTitle, User user, string folderPath, Dictionary<string, string> arguments = null)
+        public async Task<Album> CreateAlbumAsync(string albumTitle, User user, string folderPath, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create an album.");
 
-            Folder parentFolder = await GetFolder(user, folderPath);
+            Folder parentFolder = await GetFolderAsync(user, folderPath).ConfigureAwait(false);
             if (parentFolder != null)
             {
-                return await CreateAlbum(albumTitle, parentFolder, arguments);
+                return await CreateAlbumAsync(albumTitle, parentFolder, arguments).ConfigureAwait(false);
             }
             else
             {
@@ -834,7 +834,7 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<Album> CreateAlbum(string albumTitle, Folder folder, Dictionary<string, string> arguments = null)
+        public async Task<Album> CreateAlbumAsync(string albumTitle, Folder folder, Dictionary<string, string> arguments = null)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to create an album.");
@@ -844,11 +844,11 @@ namespace SmugMug.NET
 
             string content = GenerateNodeJson(albumTitle, arguments);
             string endpoint = folder.Uris.FolderAlbums.Uri;
-            var response = await PostRequest<AlbumPostResponse>(endpoint, content);
+            var response = await PostRequestAsync<AlbumPostResponse>(endpoint, content).ConfigureAwait(false);
             return response.Album;
         }
 
-        public async Task<Album> UpdateAlbum(Album album, Dictionary<string, string> updates)
+        public async Task<Album> UpdateAlbumAsync(Album album, Dictionary<string, string> updates)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to update an album.");
@@ -859,7 +859,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = album.Uri;
-                    var response = await PatchRequest<AlbumPostResponse>(endpoint, content);
+                    var response = await PatchRequestAsync<AlbumPostResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Album;
                 }
                 else
@@ -873,39 +873,39 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task DeleteAlbum(Album album)
+        public async Task DeleteAlbumAsync(Album album)
         {
             if (album == null)
             {
                 throw new ArgumentNullException("album", "You must provide a valid album to delete.");
             }
 
-            await DeleteRequest(album.Uri);
+            await DeleteRequestAsync(album.Uri).ConfigureAwait(false);
         }
 
         #endregion
 
         #region Image
-        public async Task<Image> GetImage(string imageKey)
+        public async Task<Image> GetImageAsync(string imageKey)
         {
             string endpoint = string.Format("image/{0}", imageKey);
-            ImageGetResponse response = await GetRequest<ImageGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint);
+            ImageGetResponse response = await GetRequestAsync<ImageGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Image;
         }
 
-        public async Task<Image> GetImage(ImageUpload imageUpload)
+        public async Task<Image> GetImageAsync(ImageUpload imageUpload)
         {
             var imageKey = GetImageKey(imageUpload);
 
-            return await GetImage(imageKey);
+            return await GetImageAsync(imageKey).ConfigureAwait(false);
         }
 
-        public async Task<AlbumImage> GetAlbumImage(Album album, string imageKey)
+        public async Task<AlbumImage> GetAlbumImageAsync(Album album, string imageKey)
         {
             if (album != null)
             {
                 string endpoint = string.Format(album.Uri + "/image/{0}", imageKey);
-                AlbumImageResponse response = await GetRequest<AlbumImageResponse>(endpoint);
+                AlbumImageResponse response = await GetRequestAsync<AlbumImageResponse>(endpoint).ConfigureAwait(false);
                 return response.AlbumImage;
             }
             else
@@ -927,7 +927,7 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<ImageUpload> UploadImage(string albumUri, string filePath)
+        public async Task<ImageUpload> UploadImageAsync(string albumUri, string filePath)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to upload an image.");
@@ -937,7 +937,7 @@ namespace SmugMug.NET
                 FileInfo fi = new FileInfo(filePath);
                 byte[] fileContents = File.ReadAllBytes(fi.FullName);
 
-                ImageUpload response = await UploadImage(albumUri, fi.Name, fileContents, CancellationToken.None);
+                ImageUpload response = await UploadImageAsync(albumUri, fi.Name, fileContents, CancellationToken.None).ConfigureAwait(false);
                 return response;
             }
             else
@@ -946,7 +946,7 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task<ImageUpload> UploadImage(Node node, string filePath)
+        public async Task<ImageUpload> UploadImageAsync(Node node, string filePath)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to upload an image.");
@@ -954,18 +954,18 @@ namespace SmugMug.NET
             if (node.Type != NodeType.Album)
                 throw new ArgumentException("Images can only be uploaded to album nodes.");
 
-            return await UploadImage(node.Uris.Album.Uri, filePath);
+            return await UploadImageAsync(node.Uris.Album.Uri, filePath).ConfigureAwait(false);
         }
 
-        public async Task<ImageUpload> UploadImage(Album album, string filePath)
+        public async Task<ImageUpload> UploadImageAsync(Album album, string filePath)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to upload an image.");
 
-            return await UploadImage(album.Uri, filePath);
+            return await UploadImageAsync(album.Uri, filePath).ConfigureAwait(false);
         }
 
-        public async Task<Image> UpdateImage(Image image, Dictionary<string, string> updates)
+        public async Task<Image> UpdateImageAsync(Image image, Dictionary<string, string> updates)
         {
             if (LoginType == LoginType.Anonymous)
                 throw new UnauthorizedAccessException("You must be logged in using OAuth to update an image.");
@@ -976,7 +976,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = image.Uri;
-                    var response = await PatchRequest<ImagePatchResponse>(endpoint, content);
+                    var response = await PatchRequestAsync<ImagePatchResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Image;
                 }
                 else
@@ -990,14 +990,14 @@ namespace SmugMug.NET
             }
         }
 
-        public async Task DeleteImage(Image image)
+        public async Task DeleteImageAsync(Image image)
         {
             if (image == null)
             {
                 throw new ArgumentNullException("image", "You must provide a valid image to delete.");
             }
 
-            await DeleteRequest(image.Uri);
+            await DeleteRequestAsync(image.Uri).ConfigureAwait(false);
         }
         #endregion        
     }
