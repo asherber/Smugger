@@ -31,10 +31,10 @@ namespace SmugMug.NET.Tests
             List<AlbumImage> validAlbumImages = new List<AlbumImage>() { new AlbumImage() { FileName = "ValidFileName.jpg", Title = "Valid Image", Format = "JPG" }, new AlbumImage() { FileName = "AnotherValidFileName.jpg", Title = "Another Valid Image", Format = "JPG" }, new AlbumImage() { FileName = "ThirdValidFileName.png", Title = "Third Valid Image", Format = "PNG" } };
             List<AlbumImage> invalidAlbumImages = null;
 
-            mock.Setup(api => api.GetAlbumImagesAsync(validAlbum, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(validAlbumImages);
-            mock.Setup(api => api.GetAlbumImagesAsync(validAlbum, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidAlbumImages);
-            mock.Setup(api => api.GetAlbumImagesAsync(invalidAlbum, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(invalidAlbumImages);
-            mock.Setup(api => api.GetAlbumImagesAsync(invalidAlbum, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidAlbumImages);
+            mock.Setup(api => api.GetAlbumImagesAsync(validAlbum, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(validAlbumImages);
+            mock.Setup(api => api.GetAlbumImagesAsync(validAlbum, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbumImages);
+            mock.Setup(api => api.GetAlbumImagesAsync(invalidAlbum, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbumImages);
+            mock.Setup(api => api.GetAlbumImagesAsync(invalidAlbum, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbumImages);
             api = mock.Object;
         }
 

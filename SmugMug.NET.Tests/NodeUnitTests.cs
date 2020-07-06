@@ -55,11 +55,11 @@ namespace SmugMug.NET.Tests
             List<Node> validNodes = new List<Node>() { folderNode, albumNode, pageNode};
             List<Node> invalidNodes = null;
 
-            mock.Setup(api => api.GetChildNodesAsync(validNode, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(validNodes);
-            mock.Setup(api => api.GetChildNodesAsync(validNode, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidNodes);
-            mock.Setup(api => api.GetChildNodesAsync(invalidNode, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(invalidNodes);
-            mock.Setup(api => api.GetChildNodesAsync(invalidNode, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidNodes);
-            mock.Setup(api => api.GetChildNodesAsync(validNodeNoChildren, It.IsInRange<int>(int.MinValue, int.MaxValue, Range.Inclusive))).ReturnsAsync(invalidNodes);
+            mock.Setup(api => api.GetChildNodesAsync(validNode, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(validNodes);
+            mock.Setup(api => api.GetChildNodesAsync(validNode, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidNodes);
+            mock.Setup(api => api.GetChildNodesAsync(invalidNode, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(invalidNodes);
+            mock.Setup(api => api.GetChildNodesAsync(invalidNode, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidNodes);
+            mock.Setup(api => api.GetChildNodesAsync(validNodeNoChildren, It.IsInRange<int>(int.MinValue, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(invalidNodes);
 
             mock.Setup(api => api.DeleteNodeAsync(invalidNode)).Throws<ArgumentNullException>();
             mock.Setup(api => api.DeleteNodeAsync(unownedNode)).Throws<HttpRequestException>();

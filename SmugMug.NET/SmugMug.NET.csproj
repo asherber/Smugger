@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>SmugMug.NET.v2</AssemblyName>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
     <AssemblyTitle>SmugMug.NET v2 API</AssemblyTitle>
     <Company>Justin Marks</Company>
     <Product>SmugMug.NET v2 API</Product>
@@ -10,10 +10,8 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="2.4.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="TinyOAuth1" Version="1.1.0" />
   </ItemGroup>
 </Project>

@@ -30,15 +30,15 @@ namespace SmugMug.NET.Tests
             List<Album> validAlbums = new List<Album>() { new Album() { Name = "ValidAlbum", ImageCount = 5 }, new Album() { Name = "AnotherValidAlbum", ImageCount = 10 }, new Album() { Name = "ThirdValidAlbum", ImageCount = 15 } };
             List<Album> invalidAlbums = null;
 
-            mock.Setup(api => api.GetAlbumsAsync(validUser, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(validAlbums);
-            mock.Setup(api => api.GetAlbumsAsync(validUser, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidAlbums);
-            mock.Setup(api => api.GetAlbumsAsync(nullUser, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(invalidAlbums);
-            mock.Setup(api => api.GetAlbumsAsync(nullUser, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidAlbums);
+            mock.Setup(api => api.GetAlbumsAsync(validUser, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(validAlbums);
+            mock.Setup(api => api.GetAlbumsAsync(validUser, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbums);
+            mock.Setup(api => api.GetAlbumsAsync(nullUser, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbums);
+            mock.Setup(api => api.GetAlbumsAsync(nullUser, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbums);
 
-            mock.Setup(api => api.GetFeaturedAlbumsAsync(validUser, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(validAlbums);
-            mock.Setup(api => api.GetFeaturedAlbumsAsync(validUser, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidAlbums);
-            mock.Setup(api => api.GetFeaturedAlbumsAsync(nullUser, It.IsInRange<int>(0, int.MaxValue, Range.Inclusive))).ReturnsAsync(invalidAlbums);
-            mock.Setup(api => api.GetFeaturedAlbumsAsync(nullUser, It.IsInRange<int>(int.MinValue, 0, Range.Inclusive))).ReturnsAsync(invalidAlbums);
+            mock.Setup(api => api.GetFeaturedAlbumsAsync(validUser, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(validAlbums);
+            mock.Setup(api => api.GetFeaturedAlbumsAsync(validUser, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbums);
+            mock.Setup(api => api.GetFeaturedAlbumsAsync(nullUser, It.IsInRange<int>(0, int.MaxValue, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbums);
+            mock.Setup(api => api.GetFeaturedAlbumsAsync(nullUser, It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive))).ReturnsAsync(invalidAlbums);
             
             api = mock.Object;
         }
