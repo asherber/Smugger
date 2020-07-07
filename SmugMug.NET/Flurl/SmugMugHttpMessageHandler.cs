@@ -11,32 +11,29 @@ using TinyOAuth1;
 
 namespace SmugMug.NET.Flurl
 {
-    // Ideas from https://github.com/metasys-server/redirect-handler
-    public class HttpClientRedirectHandler : DelegatingHandler
+    // Ideas for redirect from https://github.com/metasys-server/redirect-handler
+    public class SmugMugHttpMessageHandler : DelegatingHandler
     {
-        private OAuthCredentials _credentials;
-        private ITinyOAuth _oauthClient;
+        private SmugMugAuthorizer _authorizer;
         private static IList<HttpStatusCode> _redirectCodes = new List<HttpStatusCode>() 
         { 
-            HttpStatusCode.TemporaryRedirect, HttpStatusCode.MovedPermanently 
+            HttpStatusCode.TemporaryRedirect, 
+            HttpStatusCode.MovedPermanently 
         };
 
 
-        public bool EnforceHostNameMatching { get; set; }
-
-
-        public HttpClientRedirectHandler(OAuthCredentials credentials, ITinyOAuth oauthClient) 
+        public SmugMugHttpMessageHandler(SmugMugAuthorizer authorizer) 
             : base(new HttpClientHandler() { AllowAutoRedirect = false })
         {
-            _credentials = credentials;
-            _oauthClient = oauthClient;
-            EnforceHostNameMatching = true;
+            _authorizer = authorizer;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            _authorizer.AddAuth(request);
             var response = await base.SendAsync(request, cancellationToken);
-            if (_redirectCodes.Contains(response.StatusCode) && request.Headers.Contains("Authorization"))
+
+            if (_redirectCodes.Contains(response.StatusCode))
             {
                 var newLocation = response.Headers.Location;
 
@@ -47,18 +44,13 @@ namespace SmugMug.NET.Flurl
                 }
 
                 if (newLocation == null
-                    || (EnforceHostNameMatching && request.RequestUri.Host != newLocation.Host))
+                    || request.RequestUri.Host != newLocation.Host)
                 {
                     return response;
                 }                
 
                 request.RequestUri = newLocation;
-                
-                var authHeader = _oauthClient.GetAuthorizationHeader(_credentials.AccessToken, _credentials.AccessTokenSecret,
-                        newLocation.AbsoluteUri, request.Method);
-                request.Headers.Authorization = authHeader;
-
-                return await base.SendAsync(request, cancellationToken);
+                return await this.SendAsync(request, cancellationToken);
             }
 
             return response;

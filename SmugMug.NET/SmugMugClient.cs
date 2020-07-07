@@ -19,9 +19,8 @@ using TinyOAuth1;
 namespace SmugMug.NET
 {
     public class SmugMugClient : ISmugMugClient
-    {
-        private OAuthCredentials _credentials;
-        private ITinyOAuth _oauthClient;
+    {        
+        private SmugMugAuthorizer _authorizer;
 
         const string SMUGMUG_API_v2_BaseEndpoint = "https://api.smugmug.com";
         const string SMUGMUG_API_v2_ApiEndpoint = "https://api.smugmug.com/api/v2/";
@@ -45,51 +44,22 @@ namespace SmugMug.NET
         private SmugMugClient(LoginType loginType, OAuthCredentials credentials)
         {
             LoginType = loginType;
-            _credentials = credentials;
-            _oauthClient = new TinyOAuth(new TinyOAuthConfig()
-            {
-                ConsumerKey = credentials.ConsumerKey,
-                ConsumerSecret = credentials.ConsumerSecret
-            });
+            _authorizer = new SmugMugAuthorizer(loginType, credentials);
 
-            FlurlHttp.ConfigureClient(SMUGMUG_API_v2_BaseEndpoint, cli =>
-            {
-                cli.Settings.HttpClientFactory = new HttpClientRedirectFactory(_credentials, _oauthClient);
-            });
+            var factory = new SmugMugHttpClientFactory(_authorizer);
+            factory.ConfigureFlurlClient(SMUGMUG_API_v2_BaseEndpoint);
+            factory.ConfigureFlurlClient(SMUGMUG_API_v2_UploadEndpoint);
         }        
 
         #region REST Requests
+        private IFlurlRequest CreateRequest(string baseAddress, string endpoint)
+        {
+            return new FlurlRequest(Url.Combine(baseAddress, endpoint));
+        }        
+
         private async Task<T> GetRequestAsync<T>(string endpoint)
         {
             return await GetRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
-        }
-
-        private IFlurlRequest CreateRequest(string baseAddress, string endpoint)
-        {
-            return CreateRequest(baseAddress, endpoint, HttpMethod.Get);
-        }
-
-        private IFlurlRequest CreateRequest(string baseAddress, string endpoint, HttpMethod method)
-        {
-            var result = new FlurlRequest(Url.Combine(baseAddress, endpoint))
-                .WithHeader("Accept", "application/json");
-
-            switch (LoginType)
-            {
-                case LoginType.Anonymous:
-                    result.SetQueryParam("APIKey", _credentials.ConsumerKey);
-                    break;
-                case LoginType.OAuth:
-                    var authHeader = _oauthClient.GetAuthorizationHeader(_credentials.AccessToken, _credentials.AccessTokenSecret, 
-                        result.Url, method);
-                    
-                    result.WithHeader("Authorization", authHeader);
-                    break;
-                default:
-                    throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
-            }
-
-            return result;
         }
 
         private async Task<T> GetRequestAsync<T>(string baseAddress, string endpoint)
@@ -126,7 +96,7 @@ namespace SmugMug.NET
 
         private async Task<T> PostRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
-            var request = CreateRequest(baseAddress, endpoint, HttpMethod.Post);
+            var request = CreateRequest(baseAddress, endpoint);
 
             try
             {
@@ -166,7 +136,7 @@ namespace SmugMug.NET
             if (LoginType != LoginType.OAuth)
                 throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
 
-            var request = CreateRequest(SMUGMUG_API_v2_UploadEndpoint, null, HttpMethod.Post)
+            var request = CreateRequest(SMUGMUG_API_v2_UploadEndpoint, null)
                 .WithHeaders(new
                 {
                     X_Smug_AlbumUri = albumUri,
@@ -192,7 +162,7 @@ namespace SmugMug.NET
 
         private async Task<T> PatchRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
-            var request = CreateRequest(baseAddress, endpoint, new HttpMethod("PATCH"));
+            var request = CreateRequest(baseAddress, endpoint);
 
             Trace.WriteLine(string.Format("PATCH {0}: {1}", request.Url, jsonContent));
             var result = await request.PatchAsync(new StringContent(jsonContent))
@@ -209,7 +179,7 @@ namespace SmugMug.NET
 
         private async Task DeleteRequestAsync(string baseAddress, string endpoint)
         {
-            var request = CreateRequest(baseAddress, endpoint, HttpMethod.Delete);
+            var request = CreateRequest(baseAddress, endpoint);
 
             Trace.WriteLine(string.Format("DELETE {0}", request.Url));
             var result = await request.DeleteAsync().ReceiveJson<DeleteResponseStub>().ConfigureAwait(false);
