@@ -57,12 +57,12 @@ namespace SmugMug.NET
             return new FlurlRequest(Url.Combine(baseAddress, endpoint));
         }        
 
-        private async Task<T> GetRequestAsync<T>(string endpoint)
+        private async Task<T> GetAsync<T>(string endpoint)
         {
-            return await GetRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
+            return await GetAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
-        private async Task<T> GetRequestAsync<T>(string baseAddress, string endpoint)
+        private async Task<T> GetAsync<T>(string baseAddress, string endpoint)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
@@ -73,12 +73,12 @@ namespace SmugMug.NET
             return result.Response;            
         }
 
-        private async Task<Tuple<T, Dictionary<string,TE>>> GetRequestWithExpansionsAsync<T, TE>(string endpoint)
+        private async Task<Tuple<T, Dictionary<string,TE>>> GetWithExpansionsAsync<T, TE>(string endpoint)
         {
-            return await GetRequestWithExpansionsAsync<T, TE>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
+            return await GetWithExpansionsAsync<T, TE>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
-        private async Task<Tuple<T, Dictionary<string, TE>>> GetRequestWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
+        private async Task<Tuple<T, Dictionary<string, TE>>> GetWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
@@ -89,12 +89,12 @@ namespace SmugMug.NET
             return new Tuple<T, Dictionary<string, TE>>(result.Response, result.Expansions);            
         }
 
-        private async Task<T> PostRequestAsync<T>(string endpoint, string jsonContent)
+        private async Task<T> PostAsync<T>(string endpoint, string jsonContent)
         {
-            return await PostRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
+            return await PostAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
         }
 
-        private async Task<T> PostRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
+        private async Task<T> PostAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
@@ -155,12 +155,12 @@ namespace SmugMug.NET
             return result.Image;           
         }
 
-        private async Task<T> PatchRequestAsync<T>(string endpoint, string jsonContent)
+        private async Task<T> PatchAsync<T>(string endpoint, string jsonContent)
         {
-            return await PatchRequestAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
+            return await PatchAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
         }
 
-        private async Task<T> PatchRequestAsync<T>(string baseAddress, string endpoint, string jsonContent)
+        private async Task<T> PatchAsync<T>(string baseAddress, string endpoint, string jsonContent)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
@@ -172,12 +172,12 @@ namespace SmugMug.NET
             return result.Response;            
         }
 
-        private async Task DeleteRequestAsync(string endpoint)
+        private async Task DeleteAsync(string endpoint)
         {
-            await DeleteRequestAsync(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
+            await DeleteAsync(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
         }
 
-        private async Task DeleteRequestAsync(string baseAddress, string endpoint)
+        private async Task DeleteAsync(string baseAddress, string endpoint)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
@@ -227,21 +227,21 @@ namespace SmugMug.NET
         public async Task<User> GetUserAsync(string userNickName)
         {
             string endpoint = string.Format("user/{0}", userNickName);
-            UserGetResponse response = await GetRequestAsync<UserGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            UserGetResponse response = await GetAsync<UserGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.User;
         }
 
         public async Task<User> GetAuthenticatedUserAsync()
         {
             string endpoint = "/api/v2!authuser";
-            UserGetResponse response = await GetRequestAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
+            UserGetResponse response = await GetAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
 
         public async Task<User> GetSiteUserAsync()
         {
             string endpoint = "/api/v2!siteuser";
-            UserGetResponse response = await GetRequestAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
+            UserGetResponse response = await GetAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
         #endregion
@@ -250,7 +250,7 @@ namespace SmugMug.NET
         public async Task<UserProfile> GetUserProfileAsync(string userNickName)
         {
             string endpoint = string.Format("user/{0}!profile", userNickName);
-            UserProfileGetResponse response = await GetRequestAsync<UserProfileGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            UserProfileGetResponse response = await GetAsync<UserProfileGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.UserProfile;
         }
 
@@ -259,7 +259,7 @@ namespace SmugMug.NET
             if (user != null)
             {
                 string endpoint = user.Uris.UserProfile.Uri;
-                UserProfileGetResponse response = await GetRequestAsync<UserProfileGetResponse>(endpoint).ConfigureAwait(false);
+                UserProfileGetResponse response = await GetAsync<UserProfileGetResponse>(endpoint).ConfigureAwait(false);
                 return response.UserProfile;
             }
             else
@@ -276,7 +276,7 @@ namespace SmugMug.NET
             {
                 string content = GenerateJson(updates);
                 string endpoint = uri;
-                var response = await PatchRequestAsync<UserProfilePostResponse>(endpoint, content).ConfigureAwait(false);
+                var response = await PatchAsync<UserProfilePostResponse>(endpoint, content).ConfigureAwait(false);
                 return response.UserProfile;
             }
             else
@@ -320,7 +320,7 @@ namespace SmugMug.NET
         public async Task<Node> GetNodeAsync(string nodeId)
         {
             string endpoint = string.Format("node/{0}", nodeId);
-            NodeGetResponse response = await GetRequestAsync<NodeGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            NodeGetResponse response = await GetAsync<NodeGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Node;
         }
 
@@ -329,7 +329,7 @@ namespace SmugMug.NET
             if (user != null)
             {
                 string endpoint = user.Uris.Node.Uri;
-                NodeGetResponse response = await GetRequestAsync<NodeGetResponse>(endpoint).ConfigureAwait(false);
+                NodeGetResponse response = await GetAsync<NodeGetResponse>(endpoint).ConfigureAwait(false);
                 return response.Node;
             }
             else
@@ -358,7 +358,7 @@ namespace SmugMug.NET
             NodePagesResponse nodePagesResponse;
             do
             {
-                nodePagesResponse = await GetRequestAsync<NodePagesResponse>(nextPage).ConfigureAwait(false);
+                nodePagesResponse = await GetAsync<NodePagesResponse>(nextPage).ConfigureAwait(false);
                 results.AddRange(nodePagesResponse.Node);
 
                 if (nodePagesResponse.Pages != null)
@@ -402,7 +402,7 @@ namespace SmugMug.NET
 
                 string content = GenerateNodeJson(nodeName, arguments);
                 string endpoint = parentNode.Uris.ChildNodes.Uri;
-                var response = await PostRequestAsync<NodePostResponse>(endpoint, content).ConfigureAwait(false);
+                var response = await PostAsync<NodePostResponse>(endpoint, content).ConfigureAwait(false);
                 return response.Node;
             }
             else
@@ -421,7 +421,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = node.Uri;
-                    var response = await PatchRequestAsync<NodePostResponse>(endpoint, content).ConfigureAwait(false);
+                    var response = await PatchAsync<NodePostResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Node;
                 }
                 else
@@ -442,7 +442,7 @@ namespace SmugMug.NET
                 throw new ArgumentNullException("node", "You must provide a valid node to delete.");
             }
 
-            await DeleteRequestAsync(node.Uri).ConfigureAwait(false);
+            await DeleteAsync(node.Uri).ConfigureAwait(false);
         }
 
         #endregion
@@ -457,7 +457,7 @@ namespace SmugMug.NET
                 sb.Append("/").Append(folderPath);
             }
             string endpoint = sb.ToString();
-            FolderGetResponse response = await GetRequestAsync<FolderGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            FolderGetResponse response = await GetAsync<FolderGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Folder;
         }
 
@@ -471,7 +471,7 @@ namespace SmugMug.NET
                     sb.Append("/").Append(folderPath);
                 }
                 string endpoint = sb.ToString();
-                FolderGetResponse response = await GetRequestAsync<FolderGetResponse>(endpoint).ConfigureAwait(false);
+                FolderGetResponse response = await GetAsync<FolderGetResponse>(endpoint).ConfigureAwait(false);
                 return response.Folder;
             }
             else
@@ -515,7 +515,7 @@ namespace SmugMug.NET
 
             string content = GenerateNodeJson(folderName, arguments);
             string endpoint = folder.Uris.Folders.Uri;
-            var response = await PostRequestAsync<FolderPostResponse>(endpoint, content).ConfigureAwait(false);
+            var response = await PostAsync<FolderPostResponse>(endpoint, content).ConfigureAwait(false);
             return response.Folder;
         }
 
@@ -529,7 +529,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = folder.Uri;
-                    var response = await PatchRequestAsync<FolderPostResponse>(endpoint, content).ConfigureAwait(false);
+                    var response = await PatchAsync<FolderPostResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Folder;
                 }
                 else
@@ -550,7 +550,7 @@ namespace SmugMug.NET
                 throw new ArgumentNullException("folder", "You must provide a valid folder to delete.");
             }
 
-            await DeleteRequestAsync(folder.Uri).ConfigureAwait(false);
+            await DeleteAsync(folder.Uri).ConfigureAwait(false);
         }
         #endregion
 
@@ -558,7 +558,7 @@ namespace SmugMug.NET
         public async Task<Album> GetAlbumAsync(string albumKey)
         {
             string endpoint = string.Format("album/{0}", albumKey);
-            AlbumGetResponse response = await GetRequestAsync<AlbumGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            AlbumGetResponse response = await GetAsync<AlbumGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Album;
         }
 
@@ -569,7 +569,7 @@ namespace SmugMug.NET
             AlbumPagesResponse albumPagesResponse;
             do
             {
-                albumPagesResponse = await GetRequestAsync<AlbumPagesResponse>(nextPage).ConfigureAwait(false);
+                albumPagesResponse = await GetAsync<AlbumPagesResponse>(nextPage).ConfigureAwait(false);
                 if (albumPagesResponse.Album != null)
                 {
                     results.AddRange(albumPagesResponse.Album);
@@ -615,7 +615,7 @@ namespace SmugMug.NET
             Tuple<AlbumImagePagesResponse, Dictionary<string, ImageSizesGetResponse>> response;
             do
             {
-                response = await GetRequestWithExpansionsAsync<AlbumImagePagesResponse, ImageSizesGetResponse>(nextPage).ConfigureAwait(false);
+                response = await GetWithExpansionsAsync<AlbumImagePagesResponse, ImageSizesGetResponse>(nextPage).ConfigureAwait(false);
                 result.AlbumImages.AddRange(response.Item1.AlbumImage);
                 result.ImageSizes = result.ImageSizes.Concat(response.Item2).GroupBy(d => d.Key).ToDictionary(d => d.Key, d => d.First().Value);
                 if (response.Item1.Pages != null)
@@ -649,7 +649,7 @@ namespace SmugMug.NET
             AlbumImagePagesResponse albumImagePagesResponse;
             do
             {
-                albumImagePagesResponse = await GetRequestAsync<AlbumImagePagesResponse>(nextPage).ConfigureAwait(false);
+                albumImagePagesResponse = await GetAsync<AlbumImagePagesResponse>(nextPage).ConfigureAwait(false);
                 results.AddRange(albumImagePagesResponse.AlbumImage);
 
                 if (albumImagePagesResponse.Pages != null)
@@ -700,7 +700,7 @@ namespace SmugMug.NET
 
             string content = GenerateNodeJson(albumTitle, arguments);
             string endpoint = folder.Uris.FolderAlbums.Uri;
-            var response = await PostRequestAsync<AlbumPostResponse>(endpoint, content).ConfigureAwait(false);
+            var response = await PostAsync<AlbumPostResponse>(endpoint, content).ConfigureAwait(false);
             return response.Album;
         }
 
@@ -714,7 +714,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = album.Uri;
-                    var response = await PatchRequestAsync<AlbumPostResponse>(endpoint, content).ConfigureAwait(false);
+                    var response = await PatchAsync<AlbumPostResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Album;
                 }
                 else
@@ -735,7 +735,7 @@ namespace SmugMug.NET
                 throw new ArgumentNullException("album", "You must provide a valid album to delete.");
             }
 
-            await DeleteRequestAsync(album.Uri).ConfigureAwait(false);
+            await DeleteAsync(album.Uri).ConfigureAwait(false);
         }
 
         #endregion
@@ -744,7 +744,7 @@ namespace SmugMug.NET
         public async Task<Image> GetImageAsync(string imageKey)
         {
             string endpoint = string.Format("image/{0}", imageKey);
-            ImageGetResponse response = await GetRequestAsync<ImageGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            ImageGetResponse response = await GetAsync<ImageGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Image;
         }
 
@@ -760,7 +760,7 @@ namespace SmugMug.NET
             if (album != null)
             {
                 string endpoint = string.Format(album.Uri + "/image/{0}", imageKey);
-                AlbumImageResponse response = await GetRequestAsync<AlbumImageResponse>(endpoint).ConfigureAwait(false);
+                AlbumImageResponse response = await GetAsync<AlbumImageResponse>(endpoint).ConfigureAwait(false);
                 return response.AlbumImage;
             }
             else
@@ -823,7 +823,7 @@ namespace SmugMug.NET
                 {
                     string content = GenerateJson(updates);
                     string endpoint = image.Uri;
-                    var response = await PatchRequestAsync<ImagePatchResponse>(endpoint, content).ConfigureAwait(false);
+                    var response = await PatchAsync<ImagePatchResponse>(endpoint, content).ConfigureAwait(false);
                     return response.Image;
                 }
                 else
@@ -844,7 +844,7 @@ namespace SmugMug.NET
                 throw new ArgumentNullException("image", "You must provide a valid image to delete.");
             }
 
-            await DeleteRequestAsync(image.Uri).ConfigureAwait(false);
+            await DeleteAsync(image.Uri).ConfigureAwait(false);
         }
         #endregion        
     }
