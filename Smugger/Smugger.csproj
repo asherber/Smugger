@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
+    <Company>Aaron Sherber</Company>
+    <Product>SmugMug v2 API</Product>
+    <Description>Client library for v2 of the SmugMug API.</Description>
+    <Copyright>Copyright ©2020</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Flurl.Http" Version="2.4.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="TinyOAuth1" Version="1.1.0" />
+  </ItemGroup>
+</Project>
