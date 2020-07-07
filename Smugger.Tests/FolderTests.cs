@@ -7,11 +7,11 @@ using Xunit;
 
 namespace Smugger.Tests
 {
-    public class FolderUnitTests
+    public class FolderTests
     {
         private ISmugMugClient api;
 
-        public FolderUnitTests()
+        public FolderTests()
         {
             var mock = new Mock<ISmugMugClient>();
 

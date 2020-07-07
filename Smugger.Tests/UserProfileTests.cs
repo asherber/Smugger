@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Smugger.Tests
 {
-    public class UserProfileUnitTests
+    public class UserProfileTests
     {
         private ISmugMugClient api;
 
-        public UserProfileUnitTests()
+        public UserProfileTests()
         {
             var mock = new Mock<ISmugMugClient>();
 

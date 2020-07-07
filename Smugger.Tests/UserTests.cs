@@ -8,11 +8,11 @@ using System.Net.Http;
 
 namespace Smugger.Tests
 {
-    public class UserUnitTests
+    public class UserTests
     {
         private ISmugMugClient api;
 
-        public UserUnitTests()
+        public UserTests()
         {
             var mock = new Mock<ISmugMugClient>();
 

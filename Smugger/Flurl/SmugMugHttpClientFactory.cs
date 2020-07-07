@@ -28,7 +28,7 @@ namespace Smugger.Flurl
         {
             FlurlHttp.ConfigureClient(url, cli =>
             {
-                cli.Headers.Add("Accept", "application/json");
+                cli.WithHeader("Accept", "application/json");
                 cli.Settings.HttpClientFactory = this;
             });
         }

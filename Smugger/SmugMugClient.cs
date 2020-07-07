@@ -42,6 +42,24 @@ namespace Smugger
 
         private SmugMugClient(LoginType loginType, OAuthCredentials credentials)
         {
+            credentials = credentials ?? throw new ArgumentNullException(nameof(credentials));
+
+            void CheckForNull(string input, string name)
+            {
+                if (String.IsNullOrEmpty(input))
+                    throw new ArgumentNullException(name);
+            }
+
+            if (loginType == LoginType.Anonymous)
+                CheckForNull(credentials.ConsumerKey, "apiKey");
+            else
+            {
+                CheckForNull(credentials.ConsumerKey, "consumerKey");
+                CheckForNull(credentials.ConsumerSecret, "consumerSecret");
+                CheckForNull(credentials.AccessToken, "accessToken");
+                CheckForNull(credentials.AccessTokenSecret, "accessTokenSecret");
+            }
+
             LoginType = loginType;
             _authorizer = new SmugMugAuthorizer(loginType, credentials);
 

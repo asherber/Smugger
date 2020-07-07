@@ -6,11 +6,11 @@ using Xunit;
 
 namespace Smugger.Tests
 {
-    public class AlbumImageUnitTests
+    public class AlbumImageTests
     {
         private ISmugMugClient api;
 
-        public AlbumImageUnitTests()
+        public AlbumImageTests()
         {
             var mock = new Mock<ISmugMugClient>();
 
