@@ -1,6 +1,8 @@
 ﻿using Flurl;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Newtonsoft.Json.Linq;
+using SmugMug.NET.Flurl;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -49,7 +51,12 @@ namespace SmugMug.NET
                 ConsumerKey = credentials.ConsumerKey,
                 ConsumerSecret = credentials.ConsumerSecret
             });
-        }
+
+            FlurlHttp.ConfigureClient(SMUGMUG_API_v2_BaseEndpoint, cli =>
+            {
+                cli.Settings.HttpClientFactory = new HttpClientRedirectFactory(_credentials, _oauthClient);
+            });
+        }        
 
         #region REST Requests
         private async Task<T> GetRequestAsync<T>(string endpoint)
@@ -164,7 +171,7 @@ namespace SmugMug.NET
                 {
                     X_Smug_AlbumUri = albumUri,
                     X_Smug_FileName = fileName,
-                    X_Smug_Response_Type = "JSON",
+                    X_Smug_ResponseType = "JSON",
                     X_Smug_Version = "v2"
                 });
 
@@ -578,9 +585,9 @@ namespace SmugMug.NET
         #endregion
 
         #region Album
-        public async Task<Album> GetAlbumAsync(string albumId)
+        public async Task<Album> GetAlbumAsync(string albumKey)
         {
-            string endpoint = string.Format("album/{0}", albumId);
+            string endpoint = string.Format("album/{0}", albumKey);
             AlbumGetResponse response = await GetRequestAsync<AlbumGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
             return response.Album;
         }
