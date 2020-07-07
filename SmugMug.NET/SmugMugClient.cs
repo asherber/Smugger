@@ -359,17 +359,8 @@ namespace SmugMug.NET
             do
             {
                 nodePagesResponse = await GetAsync<NodePagesResponse>(nextPage).ConfigureAwait(false);
-                results.AddRange(nodePagesResponse.Node);
-
-                if (nodePagesResponse.Pages != null)
-                {
-                    nextPage = nodePagesResponse.Pages.NextPage;
-                }
-                else
-                {
-                    break;
-                }
-                //TODO: Update nextPage to Ensure we don't return more than maxCount
+                results.AddRange(nodePagesResponse.Node.Take(maxCount - results.Count));
+                nextPage = nodePagesResponse.Pages?.NextPage;
             }
             while (!String.IsNullOrEmpty(nextPage) && (results.Count < maxCount));
 
@@ -572,21 +563,11 @@ namespace SmugMug.NET
                 albumPagesResponse = await GetAsync<AlbumPagesResponse>(nextPage).ConfigureAwait(false);
                 if (albumPagesResponse.Album != null)
                 {
-                    results.AddRange(albumPagesResponse.Album);
-
-                    if (albumPagesResponse.Pages != null)
-                    {
-                        nextPage = albumPagesResponse.Pages.NextPage;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                    //TODO: Update nextPage to Ensure we don't return more than maxCount
+                    results.AddRange(albumPagesResponse.Album.Take(maxCount - results.Count));
+                    nextPage = albumPagesResponse.Pages?.NextPage;
                 }
                 else
-                    throw new NullReferenceException("The user has not specified anys albums.");
-
+                    throw new NullReferenceException("The user has not specified any albums.");
             }
             while (!String.IsNullOrEmpty(nextPage) && (results.Count < maxCount));
 
@@ -605,32 +586,26 @@ namespace SmugMug.NET
 
         private async Task<AlbumImagesWithSizes> GetPagedAlbumImagesWithSizesAsync(string initialUri, int maxCount)
         {
-            var result = new AlbumImagesWithSizes();
-            result.AlbumImages = new List<AlbumImage>();
-            result.ImageSizes = new Dictionary<string, ImageSizesGetResponse>();
+            var result = new AlbumImagesWithSizes()
+            {
+                AlbumImages = new List<AlbumImage>(),
+                ImageSizes = new Dictionary<string, ImageSizesGetResponse>()
+            };
+
             string nextPage = initialUri;
-            nextPage = string.Format("{0}{2}{1}", nextPage, "_expand=ImageSizes", nextPage.Contains('?') ? "&" : "?");
-            //AlbumImagePagesResponse albumImagePagesResponse;
-            //ImageSizesGetResponse albumImageSizesResponse;
+
             Tuple<AlbumImagePagesResponse, Dictionary<string, ImageSizesGetResponse>> response;
             do
             {
+                nextPage = nextPage.SetQueryParam("_expand", "ImageSizes");
+
                 response = await GetWithExpansionsAsync<AlbumImagePagesResponse, ImageSizesGetResponse>(nextPage).ConfigureAwait(false);
-                result.AlbumImages.AddRange(response.Item1.AlbumImage);
-                result.ImageSizes = result.ImageSizes.Concat(response.Item2).GroupBy(d => d.Key).ToDictionary(d => d.Key, d => d.First().Value);
-                if (response.Item1.Pages != null)
-                {
-                    nextPage = response.Item1.Pages.NextPage;
-                    if (!String.IsNullOrEmpty(nextPage))
-                    {
-                        nextPage = string.Format("{0}{2}{1}", nextPage, "_expand=ImageSizes", nextPage.Contains('?') ? "&" : "?"); 
-                    }
-                }
-                else
-                {
-                    break;
-                }
-                //TODO: Update nextPage to Ensure we don't return more than maxCount
+                result.AlbumImages.AddRange(response.Item1.AlbumImage.Take(maxCount - result.AlbumImages.Count));
+                result.ImageSizes = result.ImageSizes.Concat(response.Item2)
+                    .GroupBy(d => d.Key)
+                    .ToDictionary(d => d.Key, d => d.First().Value);
+
+                nextPage = response.Item1.Pages?.NextPage;
             }
             while (!String.IsNullOrEmpty(nextPage) && (result.AlbumImages.Count < maxCount));
 
@@ -650,17 +625,8 @@ namespace SmugMug.NET
             do
             {
                 albumImagePagesResponse = await GetAsync<AlbumImagePagesResponse>(nextPage).ConfigureAwait(false);
-                results.AddRange(albumImagePagesResponse.AlbumImage);
-
-                if (albumImagePagesResponse.Pages != null)
-                {
-                    nextPage = albumImagePagesResponse.Pages.NextPage;
-                }
-                else
-                {
-                    break;
-                }
-                //TODO: Update nextPage to Ensure we don't return more than maxCount
+                results.AddRange(albumImagePagesResponse.AlbumImage.Take(maxCount - results.Count));
+                nextPage = albumImagePagesResponse.Pages?.NextPage;
             }
             while (!String.IsNullOrEmpty(nextPage) && (results.Count < maxCount));
 
