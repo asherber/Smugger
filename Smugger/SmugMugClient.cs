@@ -80,9 +80,9 @@ namespace Smugger
             return new FlurlRequest(Url.Combine(baseAddress, endpoint));
         }        
 
-        private async Task<T> GetAsync<T>(string endpoint)
+        private Task<T> GetAsync<T>(string endpoint)
         {
-            return await GetAsync<T>(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
+            return GetAsync<T>(BASE_ENDPOINT, endpoint);
         }
 
         private async Task<T> GetAsync<T>(string baseAddress, string endpoint)
@@ -96,9 +96,9 @@ namespace Smugger
             return result.Response;            
         }
 
-        private async Task<Tuple<T, Dictionary<string,TE>>> GetWithExpansionsAsync<T, TE>(string endpoint)
+        private Task<Tuple<T, Dictionary<string,TE>>> GetWithExpansionsAsync<T, TE>(string endpoint)
         {
-            return await GetWithExpansionsAsync<T, TE>(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
+            return GetWithExpansionsAsync<T, TE>(BASE_ENDPOINT, endpoint);
         }
 
         private async Task<Tuple<T, Dictionary<string, TE>>> GetWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
@@ -112,9 +112,9 @@ namespace Smugger
             return new Tuple<T, Dictionary<string, TE>>(result.Response, result.Expansions);            
         }
 
-        private async Task<T> PostAsync<T>(string endpoint, string jsonContent)
+        private Task<T> PostAsync<T>(string endpoint, string jsonContent)
         {
-            return await PostAsync<T>(BASE_ENDPOINT, endpoint, jsonContent).ConfigureAwait(false);
+            return PostAsync<T>(BASE_ENDPOINT, endpoint, jsonContent);
         }
 
         private async Task<T> PostAsync<T>(string baseAddress, string endpoint, string jsonContent)
@@ -178,9 +178,9 @@ namespace Smugger
             return result.Image;           
         }
 
-        private async Task<T> PatchAsync<T>(string endpoint, string jsonContent)
+        private Task<T> PatchAsync<T>(string endpoint, string jsonContent)
         {
-            return await PatchAsync<T>(BASE_ENDPOINT, endpoint, jsonContent).ConfigureAwait(false);
+            return PatchAsync<T>(BASE_ENDPOINT, endpoint, jsonContent);
         }
 
         private async Task<T> PatchAsync<T>(string baseAddress, string endpoint, string jsonContent)
@@ -195,9 +195,9 @@ namespace Smugger
             return result.Response;            
         }
 
-        private async Task DeleteAsync(string endpoint)
+        private Task DeleteAsync(string endpoint)
         {
-            await DeleteAsync(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
+            return DeleteAsync(BASE_ENDPOINT, endpoint);
         }
 
         private async Task DeleteAsync(string baseAddress, string endpoint)
@@ -292,20 +292,20 @@ namespace Smugger
                 throw new UnauthorizedAccessException($"You must be logged in using OAuth to {action}.");
         }
 
-        public async Task<UserProfile> UpdateUserProfileAsync(UserProfile userProfile, Dictionary<string, string> updates)
+        public Task<UserProfile> UpdateUserProfileAsync(UserProfile userProfile, Dictionary<string, string> updates)
         {
             if (userProfile == null)
                 throw new ArgumentException(string.Format("UserProfile {0} not found", userProfile), "userProfile");
-            
-            return await UpdateUserProfileAsync(userProfile.Uri, updates).ConfigureAwait(false);
+
+            return UpdateUserProfileAsync(userProfile.Uri, updates);
         }
 
-        public async Task<UserProfile> UpdateUserProfileAsync(User user, Dictionary<string, string> updates)
+        public Task<UserProfile> UpdateUserProfileAsync(User user, Dictionary<string, string> updates)
         {
             if (user == null)
                 throw new ArgumentException(string.Format("User {0} not found", user), "user");
-            
-            return await UpdateUserProfileAsync(user.Uris.UserProfile.Uri, updates).ConfigureAwait(false);
+
+            return UpdateUserProfileAsync(user.Uris.UserProfile.Uri, updates);
         }
         #endregion
 
@@ -350,12 +350,12 @@ namespace Smugger
             return results;
         }
 
-        public async Task<List<Node>> GetChildNodesAsync(Node node, int maxNodeCount = int.MaxValue)
+        public Task<List<Node>> GetChildNodesAsync(Node node, int maxNodeCount = int.MaxValue)
         {
             if (node.HasChildren)
-                return await GetPagedNodesAsync(node.Uris.ChildNodes.Uri, maxNodeCount).ConfigureAwait(false);
+                return GetPagedNodesAsync(node.Uris.ChildNodes.Uri, maxNodeCount);
             else
-                return null;
+                return Task.FromResult<List<Node>>(null);
         }
 
         public async Task<Node> CreateNodeAsync(NodeType nodeType, string nodeName, string folderNodeId, Dictionary<string, string> arguments = null)
@@ -392,12 +392,12 @@ namespace Smugger
             return response.Node;                     
         }
 
-        public async Task DeleteNodeAsync(Node node)
+        public Task DeleteNodeAsync(Node node)
         {
             if (node == null)
-                throw new ArgumentNullException("node", "You must provide a valid node to delete.");             
+                throw new ArgumentNullException("node", "You must provide a valid node to delete.");
 
-            await DeleteAsync(node.Uri).ConfigureAwait(false);
+            return DeleteAsync(node.Uri);
         }
 
         #endregion
@@ -430,7 +430,7 @@ namespace Smugger
             if (parentFolder == null)
                 throw new ArgumentException(string.Format("Folder {0} not found", folderPath), "folderPath");
 
-            return await CreateFolderAsync(folderName, parentFolder, arguments).ConfigureAwait(false);            
+            return await CreateFolderAsync(folderName, parentFolder, arguments).ConfigureAwait(false);
         }
 
         public async Task<Folder> CreateFolderAsync(string folderName, User user, string folderPath, Dictionary<string, string> arguments = null)
@@ -470,12 +470,12 @@ namespace Smugger
             return response.Folder;
         }
 
-        public async Task DeleteFolderAsync(Folder folder)
+        public Task DeleteFolderAsync(Folder folder)
         {
             if (folder == null)
                 throw new ArgumentNullException("folder", "You must provide a valid folder to delete.");
-            
-            await DeleteAsync(folder.Uri).ConfigureAwait(false);
+
+            return DeleteAsync(folder.Uri);
         }
         #endregion
 
@@ -508,14 +508,14 @@ namespace Smugger
             return results;
         }
 
-        public async Task<List<Album>> GetAlbumsAsync(User user, int maxAlbumCount = int.MaxValue)
+        public Task<List<Album>> GetAlbumsAsync(User user, int maxAlbumCount = int.MaxValue)
         {
-            return await GetPagedAlbumsAsync(user.Uris.UserAlbums.Uri, maxAlbumCount).ConfigureAwait(false);
+            return GetPagedAlbumsAsync(user.Uris.UserAlbums.Uri, maxAlbumCount);
         }
 
-        public async Task<List<Album>> GetFeaturedAlbumsAsync(User user, int maxAlbumCount = int.MaxValue)
+        public Task<List<Album>> GetFeaturedAlbumsAsync(User user, int maxAlbumCount = int.MaxValue)
         {
-            return await GetPagedAlbumsAsync(user.Uris.UserFeaturedAlbums.Uri, maxAlbumCount).ConfigureAwait(false);
+            return GetPagedAlbumsAsync(user.Uris.UserFeaturedAlbums.Uri, maxAlbumCount);
         }
 
         private async Task<AlbumImagesWithSizes> GetPagedAlbumImagesWithSizesAsync(string initialUri, int maxCount)
@@ -546,9 +546,9 @@ namespace Smugger
             return result;
         }
 
-        public async Task<AlbumImagesWithSizes> GetAlbumImagesWithSizesAsync(Album album, int maxAlbumImageCount = int.MaxValue)
+        public Task<AlbumImagesWithSizes> GetAlbumImagesWithSizesAsync(Album album, int maxAlbumImageCount = int.MaxValue)
         {
-            return await GetPagedAlbumImagesWithSizesAsync(album.Uris.AlbumImages.Uri, maxAlbumImageCount).ConfigureAwait(false);
+            return GetPagedAlbumImagesWithSizesAsync(album.Uris.AlbumImages.Uri, maxAlbumImageCount);
         }
 
         private async Task<List<AlbumImage>> GetPagedAlbumImagesAsync(string initialUri, int maxCount)
@@ -567,9 +567,9 @@ namespace Smugger
             return results;
         }
 
-        public async Task<List<AlbumImage>> GetAlbumImagesAsync(Album album, int maxAlbumImageCount = int.MaxValue)
+        public Task<List<AlbumImage>> GetAlbumImagesAsync(Album album, int maxAlbumImageCount = int.MaxValue)
         {
-            return await GetPagedAlbumImagesAsync(album.Uris.AlbumImages.Uri, maxAlbumImageCount).ConfigureAwait(false);
+            return GetPagedAlbumImagesAsync(album.Uris.AlbumImages.Uri, maxAlbumImageCount);
         }
 
         public async Task<Album> CreateAlbumAsync(string albumTitle, string userNickName, string folderPath, Dictionary<string, string> arguments = null)
@@ -614,12 +614,12 @@ namespace Smugger
             return response.Album;                
         }
 
-        public async Task DeleteAlbumAsync(Album album)
+        public Task DeleteAlbumAsync(Album album)
         {
             if (album == null)            
-                throw new ArgumentNullException("album", "You must provide a valid album to delete.");            
+                throw new ArgumentNullException("album", "You must provide a valid album to delete.");
 
-            await DeleteAsync(album.Uri).ConfigureAwait(false);
+            return DeleteAsync(album.Uri);
         }
 
         #endregion
@@ -632,11 +632,11 @@ namespace Smugger
             return response.Image;
         }
 
-        public async Task<Image> GetImageAsync(ImageUpload imageUpload)
+        public Task<Image> GetImageAsync(ImageUpload imageUpload)
         {
             var imageKey = GetImageKey(imageUpload);
 
-            return await GetImageAsync(imageKey).ConfigureAwait(false);
+            return GetImageAsync(imageKey);
         }
 
         public async Task<AlbumImage> GetAlbumImageAsync(Album album, string imageKey)
@@ -670,17 +670,17 @@ namespace Smugger
             return response;
         }
 
-        public async Task<ImageUpload> UploadImageAsync(Node node, string filePath)
+        public Task<ImageUpload> UploadImageAsync(Node node, string filePath)
         {
             if (node.Type != NodeType.Album)
                 throw new ArgumentException("Images can only be uploaded to album nodes.");
 
-            return await UploadImageAsync(node.Uris.Album.Uri, filePath).ConfigureAwait(false);
+            return UploadImageAsync(node.Uris.Album.Uri, filePath);
         }
 
-        public async Task<ImageUpload> UploadImageAsync(Album album, string filePath)
+        public Task<ImageUpload> UploadImageAsync(Album album, string filePath)
         {
-            return await UploadImageAsync(album.Uri, filePath).ConfigureAwait(false);
+            return UploadImageAsync(album.Uri, filePath);
         }
 
         public async Task<Image> UpdateImageAsync(Image image, Dictionary<string, string> updates)
@@ -697,24 +697,24 @@ namespace Smugger
             return response.Image;
         }
 
-        public async Task DeleteImageAsync(Image image)
+        public Task DeleteImageAsync(Image image)
         {
             if (image == null)
                 throw new ArgumentNullException("image", "You must provide a valid image to delete.");
-            
-            await DeleteAsync(image.Uri).ConfigureAwait(false);
+
+            return DeleteAsync(image.Uri);
         }
         #endregion
 
         #region Raw
-        public async Task<JObject> GetJsonAsync(string endpoint)
+        public Task<JObject> GetJsonAsync(string endpoint)
         {
-            return await GetJsonAsync(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
+            return GetJsonAsync(BASE_ENDPOINT, endpoint);
         }
 
-        public async Task<JObject> GetJsonAsync(string baseAddress, string endpoint)
+        public Task<JObject> GetJsonAsync(string baseAddress, string endpoint)
         {
-            return await GetAsync<JObject>(baseAddress, endpoint);
+            return GetAsync<JObject>(baseAddress, endpoint);
         }
         #endregion
     }
