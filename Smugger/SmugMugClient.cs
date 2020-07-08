@@ -704,7 +704,19 @@ namespace Smugger
             
             await DeleteAsync(image.Uri).ConfigureAwait(false);
         }
-        #endregion        
+        #endregion
+
+        #region Raw
+        public async Task<JObject> GetJsonAsync(string endpoint)
+        {
+            return await GetJsonAsync(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
+        }
+
+        public async Task<JObject> GetJsonAsync(string baseAddress, string endpoint)
+        {
+            return await GetAsync<JObject>(baseAddress, endpoint);
+        }
+        #endregion
     }
 }
  
