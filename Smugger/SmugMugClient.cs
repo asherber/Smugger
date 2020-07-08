@@ -716,6 +716,46 @@ namespace Smugger
         {
             return GetAsync<JObject>(baseAddress, endpoint);
         }
+
+        public Task<JObject> PostJsonAsync(string endpoint, JObject content)
+        {
+            return PostJsonAsync(endpoint, content.ToString());
+        }
+
+        public Task<JObject> PostJsonAsync(string baseAddress, string endpoint, JObject content)
+        {
+            return PostJsonAsync(baseAddress, endpoint, content.ToString());
+        }
+
+        public Task<JObject> PostJsonAsync(string endpoint, string jsonContent)
+        {
+            return PostJsonAsync(BASE_ENDPOINT, endpoint, jsonContent);
+        }
+        
+        public Task<JObject> PostJsonAsync(string baseAddress, string endpoint, string jsonContent)
+        {
+            return PostAsync<JObject>(baseAddress, endpoint, jsonContent);
+        }
+
+        public Task<JObject> PatchJsonAsync(string endpoint, JObject content)
+        {
+            return PatchJsonAsync(endpoint, content.ToString());
+        }
+
+        public Task<JObject> PatchJsonAsync(string baseAddress, string endpoint, JObject content)
+        {
+            return PatchJsonAsync(baseAddress, endpoint, content.ToString());
+        }
+
+        public Task<JObject> PatchJsonAsync(string endpoint, string jsonContent)
+        {
+            return PatchJsonAsync(BASE_ENDPOINT, endpoint, jsonContent);
+        }
+
+        public Task<JObject> PatchJsonAsync(string baseAddress, string endpoint, string jsonContent)
+        {
+            return PatchAsync<JObject>(baseAddress, endpoint, jsonContent);
+        }
         #endregion
     }
 }
