@@ -21,9 +21,9 @@ namespace Smugger
     {        
         private SmugMugAuthorizer _authorizer;
 
-        const string SMUGMUG_API_v2_BaseEndpoint = "https://api.smugmug.com";
-        const string SMUGMUG_API_v2_ApiEndpoint = "https://api.smugmug.com/api/v2/";
-        const string SMUGMUG_API_v2_UploadEndpoint = "https://upload.smugmug.com/";
+        const string BASE_ENDPOINT = "https://api.smugmug.com";
+        const string UPLOAD_ENDPOINT = "https://upload.smugmug.com/";
+        const string API_SEGMENT = "/api/v2";
 
         public LoginType LoginType { get; private set; }
 
@@ -64,19 +64,25 @@ namespace Smugger
             _authorizer = new SmugMugAuthorizer(loginType, credentials);
 
             var factory = new SmugMugHttpClientFactory(_authorizer);
-            factory.ConfigureFlurlClient(SMUGMUG_API_v2_BaseEndpoint);
-            factory.ConfigureFlurlClient(SMUGMUG_API_v2_UploadEndpoint);
+            factory.ConfigureFlurlClient(BASE_ENDPOINT);
+            factory.ConfigureFlurlClient(UPLOAD_ENDPOINT);
         }        
 
         #region REST Requests
         private IFlurlRequest CreateRequest(string baseAddress, string endpoint)
         {
+            if (baseAddress == BASE_ENDPOINT)
+            {
+                if (!endpoint.StartsWith(API_SEGMENT))
+                    endpoint = API_SEGMENT + endpoint;
+            }
+
             return new FlurlRequest(Url.Combine(baseAddress, endpoint));
         }        
 
         private async Task<T> GetAsync<T>(string endpoint)
         {
-            return await GetAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
+            return await GetAsync<T>(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
         }
 
         private async Task<T> GetAsync<T>(string baseAddress, string endpoint)
@@ -92,7 +98,7 @@ namespace Smugger
 
         private async Task<Tuple<T, Dictionary<string,TE>>> GetWithExpansionsAsync<T, TE>(string endpoint)
         {
-            return await GetWithExpansionsAsync<T, TE>(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
+            return await GetWithExpansionsAsync<T, TE>(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
         }
 
         private async Task<Tuple<T, Dictionary<string, TE>>> GetWithExpansionsAsync<T, TE>(string baseAddress, string endpoint)
@@ -108,7 +114,7 @@ namespace Smugger
 
         private async Task<T> PostAsync<T>(string endpoint, string jsonContent)
         {
-            return await PostAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
+            return await PostAsync<T>(BASE_ENDPOINT, endpoint, jsonContent).ConfigureAwait(false);
         }
 
         private async Task<T> PostAsync<T>(string baseAddress, string endpoint, string jsonContent)
@@ -153,7 +159,7 @@ namespace Smugger
             if (LoginType != LoginType.OAuth)
                 throw new NotSupportedException(string.Format("LoginType {0} is unsupported", LoginType));
 
-            var request = CreateRequest(SMUGMUG_API_v2_UploadEndpoint, null)
+            var request = CreateRequest(UPLOAD_ENDPOINT, null)
                 .WithHeaders(new
                 {
                     X_Smug_AlbumUri = albumUri,
@@ -174,7 +180,7 @@ namespace Smugger
 
         private async Task<T> PatchAsync<T>(string endpoint, string jsonContent)
         {
-            return await PatchAsync<T>(SMUGMUG_API_v2_BaseEndpoint, endpoint, jsonContent).ConfigureAwait(false);
+            return await PatchAsync<T>(BASE_ENDPOINT, endpoint, jsonContent).ConfigureAwait(false);
         }
 
         private async Task<T> PatchAsync<T>(string baseAddress, string endpoint, string jsonContent)
@@ -191,7 +197,7 @@ namespace Smugger
 
         private async Task DeleteAsync(string endpoint)
         {
-            await DeleteAsync(SMUGMUG_API_v2_BaseEndpoint, endpoint).ConfigureAwait(false);
+            await DeleteAsync(BASE_ENDPOINT, endpoint).ConfigureAwait(false);
         }
 
         private async Task DeleteAsync(string baseAddress, string endpoint)
@@ -230,21 +236,21 @@ namespace Smugger
         #region User
         public async Task<User> GetUserAsync(string userNickName)
         {
-            string endpoint = string.Format("user/{0}", userNickName);
-            UserGetResponse response = await GetAsync<UserGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            string endpoint = string.Format("/user/{0}", userNickName);
+            UserGetResponse response = await GetAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
 
         public async Task<User> GetAuthenticatedUserAsync()
         {
-            string endpoint = "/api/v2!authuser";
+            string endpoint = "!authuser";
             UserGetResponse response = await GetAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
 
         public async Task<User> GetSiteUserAsync()
         {
-            string endpoint = "/api/v2!siteuser";
+            string endpoint = "!siteuser";
             UserGetResponse response = await GetAsync<UserGetResponse>(endpoint).ConfigureAwait(false);
             return response.User;
         }
@@ -253,8 +259,8 @@ namespace Smugger
         #region UserProfile
         public async Task<UserProfile> GetUserProfileAsync(string userNickName)
         {
-            string endpoint = string.Format("user/{0}!profile", userNickName);
-            UserProfileGetResponse response = await GetAsync<UserProfileGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            string endpoint = string.Format("/user/{0}!profile", userNickName);
+            UserProfileGetResponse response = await GetAsync<UserProfileGetResponse>(endpoint).ConfigureAwait(false);
             return response.UserProfile;
         }
 
@@ -306,8 +312,8 @@ namespace Smugger
         #region Node
         public async Task<Node> GetNodeAsync(string nodeId)
         {
-            string endpoint = string.Format("node/{0}", nodeId);
-            NodeGetResponse response = await GetAsync<NodeGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            string endpoint = string.Format("/node/{0}", nodeId);
+            NodeGetResponse response = await GetAsync<NodeGetResponse>(endpoint).ConfigureAwait(false);
             return response.Node;
         }
 
@@ -400,9 +406,9 @@ namespace Smugger
         public async Task<Folder> GetFolderAsync(string userNickName, string folderPath)
         {
             folderPath = folderPath ?? String.Empty;
-            var endpoint = "folder/user".AppendPathSegments(userNickName, folderPath);
+            var endpoint = "/folder/user".AppendPathSegments(userNickName, folderPath);
             
-            FolderGetResponse response = await GetAsync<FolderGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            FolderGetResponse response = await GetAsync<FolderGetResponse>(endpoint).ConfigureAwait(false);
             return response.Folder;
         }
 
@@ -476,8 +482,8 @@ namespace Smugger
         #region Album
         public async Task<Album> GetAlbumAsync(string albumKey)
         {
-            string endpoint = string.Format("album/{0}", albumKey);
-            AlbumGetResponse response = await GetAsync<AlbumGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            string endpoint = string.Format("/album/{0}", albumKey);
+            AlbumGetResponse response = await GetAsync<AlbumGetResponse>(endpoint).ConfigureAwait(false);
             return response.Album;
         }
 
@@ -621,8 +627,8 @@ namespace Smugger
         #region Image
         public async Task<Image> GetImageAsync(string imageKey)
         {
-            string endpoint = string.Format("image/{0}", imageKey);
-            ImageGetResponse response = await GetAsync<ImageGetResponse>(SMUGMUG_API_v2_ApiEndpoint, endpoint).ConfigureAwait(false);
+            string endpoint = string.Format("/image/{0}", imageKey);
+            ImageGetResponse response = await GetAsync<ImageGetResponse>(endpoint).ConfigureAwait(false);
             return response.Image;
         }
 
