@@ -90,7 +90,7 @@ namespace Smugger
             var request = CreateRequest(baseAddress, endpoint);
 
             Trace.WriteLine(string.Format("GET {0}", request.Url));
-            var result = await request.GetAsync().ReceiveJson<GetResponseStub<T>>().ConfigureAwait(false);
+            var result = await request.GetJsonAsync<GetResponseStub<T>>().ConfigureAwait(false);
             Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));
 
             return result.Response;            
@@ -106,7 +106,7 @@ namespace Smugger
             var request = CreateRequest(baseAddress, endpoint);
 
             Trace.WriteLine(string.Format("GET {0}", request.Url));
-            var result = await request.GetAsync().ReceiveJson< GetResponseWithExpansionStub<T, TE>>().ConfigureAwait(false);
+            var result = await request.GetJsonAsync<GetResponseWithExpansionStub<T, TE>>().ConfigureAwait(false);
             Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));
             
             return new Tuple<T, Dictionary<string, TE>>(result.Response, result.Expansions);            
@@ -124,7 +124,7 @@ namespace Smugger
             try
             {
                 Trace.WriteLine(string.Format("POST {0}: {1}", request.Url, jsonContent));
-                var result = await request.PostAsync(new StringContent(jsonContent))
+                var result = await request.PostStringAsync(jsonContent)
                     .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
                 Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Code, result.Message, result.Response));
                 return result.Response;
@@ -188,7 +188,7 @@ namespace Smugger
             var request = CreateRequest(baseAddress, endpoint);
 
             Trace.WriteLine(string.Format("PATCH {0}: {1}", request.Url, jsonContent));
-            var result = await request.PatchAsync(new StringContent(jsonContent))
+            var result = await request.PatchStringAsync(jsonContent)
                 .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
             Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Code, result.Message, result.Response));
 
