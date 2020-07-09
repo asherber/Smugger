@@ -1,5 +1,6 @@
 ﻿using Flurl;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Smugger.Flurl;
@@ -26,6 +27,7 @@ namespace Smugger
         const string API_SEGMENT = "/api/v2";
 
         public LoginType LoginType { get; private set; }
+        
 
         public SmugMugClient(string apiKey) : this(LoginType.Anonymous, new OAuthCredentials() { ConsumerKey = apiKey })
         {
@@ -66,7 +68,8 @@ namespace Smugger
             var factory = new SmugMugHttpClientFactory(_authorizer);
             factory.ConfigureFlurlClient(BASE_ENDPOINT);
             factory.ConfigureFlurlClient(UPLOAD_ENDPOINT);
-        }        
+        }
+
 
         #region REST Requests
         private IFlurlRequest CreateRequest(string baseAddress, string endpoint)
@@ -89,10 +92,7 @@ namespace Smugger
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            Trace.WriteLine(string.Format("GET {0}", request.Url));
-            var result = await request.GetJsonAsync<GetResponseStub<T>>().ConfigureAwait(false);
-            Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));
-
+            var result = await request.GetJsonAsync<GetResponseStub<T>>().ConfigureAwait(false);            
             return result.Response;            
         }
 
@@ -105,10 +105,7 @@ namespace Smugger
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            Trace.WriteLine(string.Format("GET {0}", request.Url));
             var result = await request.GetJsonAsync<GetResponseWithExpansionStub<T, TE>>().ConfigureAwait(false);
-            Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));
-            
             return new Tuple<T, Dictionary<string, TE>>(result.Response, result.Expansions);            
         }
 
@@ -123,10 +120,8 @@ namespace Smugger
 
             try
             {
-                Trace.WriteLine(string.Format("POST {0}: {1}", request.Url, jsonContent));
                 var result = await request.PostStringAsync(jsonContent)
                     .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
-                Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Code, result.Message, result.Response));
                 return result.Response;
             }
             catch (FlurlHttpException ex)
@@ -169,12 +164,10 @@ namespace Smugger
                 });
 
             
-            Trace.WriteLine(string.Format("POST {0}", request.Url));
             var content = new StreamContent(new MemoryStream(image));
             var result = await request.PostAsync(content, cancellationToken)
                 .ReceiveJson<ImagePostResponse>().ConfigureAwait(false);
-            Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Stat, result.Method, result.Image));
-
+            
             return result.Image;           
         }
 
@@ -187,11 +180,8 @@ namespace Smugger
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            Trace.WriteLine(string.Format("PATCH {0}: {1}", request.Url, jsonContent));
             var result = await request.PatchStringAsync(jsonContent)
                 .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
-            Trace.WriteLine(string.Format("---{0} {1}: {2}", result.Code, result.Message, result.Response));
-
             return result.Response;            
         }
 
@@ -200,13 +190,11 @@ namespace Smugger
             return DeleteAsync(BASE_ENDPOINT, endpoint);
         }
 
-        private async Task DeleteAsync(string baseAddress, string endpoint)
+        private Task DeleteAsync(string baseAddress, string endpoint)
         {
             var request = CreateRequest(baseAddress, endpoint);
 
-            Trace.WriteLine(string.Format("DELETE {0}", request.Url));
-            var result = await request.DeleteAsync().ReceiveJson<DeleteResponseStub>().ConfigureAwait(false);
-            Trace.WriteLine(string.Format("---{0}:{1}", result.Code, result.Message));            
+            return request.DeleteAsync().ReceiveJson<DeleteResponseStub>();
         }
         #endregion
 

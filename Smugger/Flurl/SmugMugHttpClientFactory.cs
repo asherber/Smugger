@@ -2,6 +2,7 @@
 using Flurl.Http.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -30,7 +31,26 @@ namespace Smugger.Flurl
             {
                 cli.WithHeader("Accept", "application/json");
                 cli.Settings.HttpClientFactory = this;
+                cli.Settings.BeforeCall = DoBeforeCall;
+                cli.Settings.AfterCall = DoAfterCall;
             });
         }
+
+        private static void DoBeforeCall(HttpCall call)
+        {
+            var msg = $"{call.Request.Method} {call.FlurlRequest.Url}";
+            if (call.RequestBody != null)
+                msg += $", {call.RequestBody}";
+
+            Trace.WriteLine(msg);
+        }
+
+        private static void DoAfterCall(HttpCall call)
+        {
+            var status = call.Response.StatusCode;
+            var msg = $"---{(int)status} {status} ({call.Duration:ss'.'fff})";
+            Trace.WriteLine(msg);
+        }
+
     }
 }
