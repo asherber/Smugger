@@ -124,28 +124,29 @@ namespace Smugger
                     .ReceiveJson<PostResponseStub<T>>().ConfigureAwait(false);
                 return result.Response;
             }
-            catch (FlurlHttpException ex)
+            catch (HttpRequestException ex) when (ex.InnerException?.GetType() == typeof(FlurlHttpException))
             {
-                var failedResponse = await ex.GetResponseStringAsync().ConfigureAwait(false);
-                JObject response = JObject.Parse(failedResponse);
-                var invalidParameters =
-                    (from p in response["Options"]["Parameters"]["POST"]
-                    where p["Problems"] != null
-                    select new POSTParameter
+                var inner = ex.InnerException as FlurlHttpException;
+                var failedResponse = await inner.GetResponseStringAsync().ConfigureAwait(false);
+                JObject responseObj = JObject.Parse(failedResponse);
+
+                var invalidParameters = responseObj["Options"]["Parameters"]["POST"]
+                    .Where(p => p["Problems"] != null)
+                    .Select(p => new
                     {
                         ParameterName = (string)p["Name"],
                         Problem = (string)p["Problems"].First()
                     })
                     .ToList();
-
+                
                 if (invalidParameters.Any())
                 {
                     var argumentExceptions = invalidParameters.Select(p => new ArgumentException(p.Problem, p.ParameterName));
-                    throw new AggregateException("HTTP POST Request failed. See inner exceptions for individual reasons.", 
+                    throw new AggregateException("HTTP POST failed. See inner exceptions for individual reasons.",
                         argumentExceptions);
                 }
                 else
-                    throw new HttpRequestException("HTTP POST Request failed for unknown reasons");
+                    throw;
             }                  
         }
 

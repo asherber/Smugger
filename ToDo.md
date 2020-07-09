@@ -8,4 +8,4 @@
 - [ ] ~~Get back a dynamic?~~
 - [ ] multi-get https://api.smugmug.com/api/v2/doc/advanced/multi-get.html
 - [x] Move tracing to Flurl config
-- [ ] Wrap FlurlExceptions
+- [x] Wrap FlurlExceptions

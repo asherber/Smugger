@@ -33,7 +33,15 @@ namespace Smugger.Flurl
                 cli.Settings.HttpClientFactory = this;
                 cli.Settings.BeforeCall = DoBeforeCall;
                 cli.Settings.AfterCall = DoAfterCall;
+                cli.Settings.OnError = DoOnError;
             });
+        }
+
+        private void DoOnError(HttpCall call)
+        {
+            Trace.WriteLine($"---ERROR: {call.Exception.Message}");
+            call.ExceptionHandled = true;
+            throw new HttpRequestException(call.Exception.Message, call.Exception);
         }
 
         private static void DoBeforeCall(HttpCall call)
