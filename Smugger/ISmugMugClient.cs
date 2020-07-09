@@ -36,7 +36,7 @@ namespace Smugger
         Task<ImageUpload> UploadImageAsync(string albumUri, string filePath);
         Task<ImageUpload> UploadImageAsync(Node node, string filePath);
         Task<ImageUpload> UploadImageAsync(Album album, string filePath);
-        Task<Image> UpdateImageAsync(Image image, Dictionary<string, string> arguments);
+        Task<Image> UpdateImageDataAsync(Image image, Dictionary<string, string> arguments);
         Task DeleteImageAsync(Image image);
 
         Task<AlbumImage> GetAlbumImageAsync(Album album, string imageKey);

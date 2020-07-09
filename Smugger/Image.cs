@@ -5,37 +5,37 @@ namespace Smugger
 {
     public class Image : SmugMugObject
     {
-        public int Altitude;
-        public string ArchivedMD5;
-        public int ArchivedSize;
-        public string ArchivedUri;
-        public bool CanEdit;
-        public string Caption;
-        public bool Collectable;
-        public DateTime Date;
-        public bool EZProject;
-        public string FileName;
-        public string Format;
-        public bool Hidden;
-        public string ImageKey;
-        public bool IsArchive;
-        public bool IsVideo;
-        public string[] KeywordArray;
-        public string Keywords;
-        public DateTime LastUpdated;
-        public double Latitude;
-        public double Longitude;
-        public int OriginalHeight;
-        public int OriginalSize;
-        public int OriginalWidth;
-        public bool Processing;
-        public bool Protected;
-        public string ThumbnailUrl;
-        public string Title;
-        public string UploadKey;
-        public bool Watermarked;
-        public Uri WebUri;
-        public Dictionary<string, SmugMugUri> Uris;
+        public int Altitude { get; set; }
+        public string ArchivedMD5 { get; set; }
+        public int ArchivedSize { get; set; }
+        public string ArchivedUri { get; set; }
+        public bool CanEdit { get; set; }
+        public string Caption { get; set; }
+        public bool Collectable { get; set; }
+        public DateTime Date { get; set; }
+        public bool EZProject { get; set; }
+        public string FileName { get; set; }
+        public string Format { get; set; }
+        public bool Hidden { get; set; }
+        public string ImageKey { get; set; }
+        public bool IsArchive { get; set; }
+        public bool IsVideo { get; set; }
+        public string[] KeywordArray { get; set; }
+        public string Keywords { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public int OriginalHeight { get; set; }
+        public int OriginalSize { get; set; }
+        public int OriginalWidth { get; set; }
+        public bool Processing { get; set; }
+        public bool Protected { get; set; }
+        public string ThumbnailUrl { get; set; }
+        public string Title { get; set; }
+        public string UploadKey { get; set; }
+        public bool Watermarked { get; set; }
+        public Uri WebUri { get; set; }
+        public Dictionary<string, SmugMugUri> Uris { get; set; }
 
         public override string ToString()
         {

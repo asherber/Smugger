@@ -51,11 +51,11 @@ namespace Smugger.Tests
             mock.Setup(api => api.GetImageAsync(validImageUpload)).ReturnsAsync(validImage);
             mock.Setup(api => api.GetImageAsync(invalidImageUpload)).Throws<ArgumentNullException>();
 
-            mock.Setup(api => api.UpdateImageAsync(validImage, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Caption")))).ReturnsAsync(updatedImage);
-            mock.Setup(api => api.UpdateImageAsync(validImage, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Invalid")))).Throws<HttpRequestException>();
+            mock.Setup(api => api.UpdateImageDataAsync(validImage, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Caption")))).ReturnsAsync(updatedImage);
+            mock.Setup(api => api.UpdateImageDataAsync(validImage, It.Is<Dictionary<string, string>>(i => i.ContainsKey("Invalid")))).Throws<HttpRequestException>();
 
-            mock.Setup(api => api.UpdateImageAsync((Image)null, It.IsAny<Dictionary<string, string>>())).Throws<ArgumentNullException>();
-            mock.Setup(api => api.UpdateImageAsync(validImage, null)).Throws<ArgumentNullException>();
+            mock.Setup(api => api.UpdateImageDataAsync((Image)null, It.IsAny<Dictionary<string, string>>())).Throws<ArgumentNullException>();
+            mock.Setup(api => api.UpdateImageDataAsync(validImage, null)).Throws<ArgumentNullException>();
 
             mock.Setup(api => api.DeleteImageAsync(invalidImage)).Throws<ArgumentNullException>();
             mock.Setup(api => api.DeleteImageAsync(unownedImage)).Throws<HttpRequestException>();
@@ -169,7 +169,7 @@ namespace Smugger.Tests
 
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Caption", "Updated caption" } };
 
-            Image updatedImage = await api.UpdateImageAsync(image, updates);
+            Image updatedImage = await api.UpdateImageDataAsync(image, updates);
             Assert.NotNull(updatedImage);
             Assert.Equal(updates["Caption"], updatedImage.Caption);
         }
@@ -178,14 +178,14 @@ namespace Smugger.Tests
         public async Task UpdateImage_InvalidAlbum()
         {
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateImageAsync((Image)null, updates));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateImageDataAsync((Image)null, updates));
         }
 
         [Fact]
         public async Task UpdateImage_InvalidAlbumNullArguments()
         {
             Image image = await api.GetImageAsync("InvalidImage");
-            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateImageAsync(image, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => api.UpdateImageDataAsync(image, null));
         }
 
         [Fact]
@@ -193,7 +193,7 @@ namespace Smugger.Tests
         {
             Image image = await api.GetImageAsync("ValidImage");
             Dictionary<string, string> updates = new Dictionary<string, string>() { { "Invalid", "Invalid" } };
-            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateImageAsync(image, updates));
+            await Assert.ThrowsAsync<HttpRequestException>(() => api.UpdateImageDataAsync(image, updates));
         }
 
         [Fact]

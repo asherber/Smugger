@@ -671,7 +671,7 @@ namespace Smugger
             return UploadImageAsync(album.Uri, filePath);
         }
 
-        public async Task<Image> UpdateImageAsync(Image image, Dictionary<string, string> updates)
+        public async Task<Image> UpdateImageDataAsync(Image image, Dictionary<string, string> updates)
         {
             CheckForOAuth("update an image");
             if (image == null)
